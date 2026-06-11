@@ -13,7 +13,20 @@ Arguments (user's declared weak zones, comma-separated): the arguments provided 
 
 Prerequisite check: verify that `converted/` contains files. If empty, tell the user to run `/ingest` first.
 
-Follow the course-builder Phase 2 analyze pipeline:
+Follow the course-builder Phase 2 analyze pipeline.
+
+## Efficiency & priority (read this first)
+
+This is a single turn — be efficient:
+- **Read each `converted/**/*.md` file exactly once**, up front, into context. Do
+  NOT re-read a file you have already read. For a small course (a handful of
+  files) one read pass is enough to write all three index files.
+- Then synthesize and write the three index files. Do not re-scan the folder
+  between writes.
+- **`coverage.md` is mandatory and the highest-value output** — `hwmap`, `quiz`,
+  `mock`, and `weakmap` all depend on it. If you are ever low on turn budget,
+  write `coverage.md` FIRST, then `patterns.md`, then `summary.md`. Never end the
+  turn with `coverage.md` missing.
 
 ## Step 1: Generate `course-index/summary.md`
 
