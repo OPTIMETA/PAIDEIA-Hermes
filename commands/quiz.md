@@ -33,10 +33,13 @@ Procedure:
    - 1 applied (pattern used in a specific system / numerical case)
    - 1 conceptual trap (tests a common student error — sign, wrong variable held fixed, wrong pattern chosen)
 
-3. **Save.**
-   - Problems → `quizzes/<topic>_<ts>.md`
-   - Answers → `quizzes/<topic>_<ts>_answers.md` (do not display)
+3. **Save (mandatory — use `write_file` BEFORE printing anything to chat).**
+   Get `<ts>` once via the terminal tool: `date +%Y-%m-%d_%H%M`.
+   - Problems → `quizzes/<topic>_<ts>.md` (create with write_file)
+   - Answers → `quizzes/<topic>_<ts>_answers.md` (create with write_file; do not display)
    - Each problem cites the § and pattern being tested (at the end of the problem, not in title — don't spoil).
+   The command is NOT complete until both files exist on disk. Printing the
+   problems to chat is not a substitute for writing the problem file.
 
 4. **Print to chat** (in $INTERFACE_LANG):
    - Filename of the quiz (so user knows where it is)

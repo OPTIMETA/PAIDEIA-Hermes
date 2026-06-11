@@ -72,6 +72,12 @@ def build_inject(sub: str, args: str, cwd: Path, lang: str) -> str:
         f"{skill_block}"
         f"Execute the command spec below against the course workspace in the "
         f"working directory. Use the read_file / write_file / terminal tools; for "
-        f"per-file parallel work (e.g. ingest), delegate one subagent per file.\n\n"
+        f"per-file parallel work (e.g. ingest), delegate one subagent per file.\n"
+        f"IMPORTANT — materialize every artifact: whenever the spec says to save / "
+        f"write a file to a path, you MUST create it on disk with write_file before "
+        f"the turn ends. Printing content to chat is NOT a substitute for writing the "
+        f"file. For any `<ts>` timestamp in a filename, get it once via the terminal "
+        f"tool (`date +%Y-%m-%d_%H%M`) and reuse it. The command is not done until "
+        f"the files the spec names actually exist.\n\n"
         f"--- COMMAND SPEC: {sub} ---\n{spec}\n"
     )
