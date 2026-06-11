@@ -20,9 +20,15 @@ import os
 import re
 import shutil
 import stat
+import subprocess
 import sys
 import urllib.request
 from pathlib import Path
+
+# The interpreter the agent's `terminal` tool / OCR+render scripts actually use
+# (PATH python3), NOT this embedding interpreter (hermes runs in its own venv).
+# Doctor must probe THIS python or it misreports dep availability.
+AGENT_PY = shutil.which("python3") or shutil.which("python") or sys.executable
 
 OK, WARN, FAIL = "ok", "warn", "fail"
 _SYMBOL = {OK: "✓", WARN: "•", FAIL: "✗"}
@@ -91,10 +97,19 @@ def _parse_meta(cwd: Path) -> dict[str, str]:
 
 
 def _has_module(name: str) -> bool:
+    """Probe the *agent's* python (PATH python3), where the OCR/render scripts run."""
     try:
-        return importlib.util.find_spec(name) is not None
-    except (ImportError, ValueError):
-        return False
+        r = subprocess.run(
+            [AGENT_PY, "-c", f"import {name}"],
+            capture_output=True,
+            timeout=10,
+        )
+        return r.returncode == 0
+    except Exception:
+        try:
+            return importlib.util.find_spec(name) is not None
+        except (ImportError, ValueError):
+            return False
 
 
 def _ollama_has_model(model: str) -> bool | None:
@@ -119,7 +134,8 @@ def run(cwd: Path, fix: bool = False) -> tuple[int, str]:
     ocr_engine = meta.get("OCR_ENGINE", "claude").strip().lower()
     lang = meta.get("INTERFACE_LANG", "en").strip().lower()
 
-    # --- Python deps ---
+    # --- Python deps (probed in the agent's terminal python, not hermes' venv) ---
+    r.add(OK, "python (agent terminal)", AGENT_PY)
     for dep in PY_DEPS:
         present = _has_module(dep)
         # reportlab only needed for /paideia cheatsheet --pdf; pytesseract only
