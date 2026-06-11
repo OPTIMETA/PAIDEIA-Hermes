@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 TaewoooPark
+Copyright (c) 2026 Taewoo Park
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,13 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Attribution
+
+PAIDEIA-Hermes is a hermes-agent port of OPTIMETA/PAIDEIA
+(https://github.com/OPTIMETA/PAIDEIA) — MIT-licensed, Copyright (c) 2026
+Taewoo Park — and preserves its license and copyright. It runs on, and builds
+on, NousResearch/hermes-agent (https://github.com/NousResearch/hermes-agent),
+also MIT-licensed.
