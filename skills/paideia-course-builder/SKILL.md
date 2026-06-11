@@ -1,22 +1,22 @@
 ---
 name: paideia-course-builder
-description: Use whenever the user wants to ingest a new course's materials (lecture notes, textbook chapters, HW problems, HW solutions) and build the course-specific knowledge base — patterns.md (recurring solution techniques), coverage.md (HW-to-section map with blind spots), and summary.md (topic tree). Invoked by `/ingest` and `/analyze` slash commands. Designed to be domain-general across math and physics courses (calculus, linear algebra, real/complex analysis, classical mechanics, E&M, thermodynamics, quantum, etc.).
+description: Use whenever the user wants to ingest a new course's materials (lecture notes, textbook chapters, HW problems, HW solutions) and build the course-specific knowledge base — patterns.md (recurring solution techniques), coverage.md (HW-to-section map with blind spots), and summary.md (topic tree). Invoked by `/paideia ingest` and `/paideia analyze` slash commands. Designed to be domain-general across math and physics courses (calculus, linear algebra, real/complex analysis, classical mechanics, E&M, thermodynamics, quantum, etc.).
 ---
 
 # Course Builder
 
 ## Overview
 
-This skill turns raw course materials into a structured knowledge base that downstream drilling commands (`/twin`, `/blind`, `/chain`, `/pattern`, `/hwmap`) can query. It is **domain-general** — the same pipeline works for a Linear Algebra course as for a Quantum Mechanics course.
+This skill turns raw course materials into a structured knowledge base that downstream drilling commands (`/paideia twin`, `/paideia blind`, `/paideia chain`, `/paideia pattern`, `/paideia hwmap`) can query. It is **domain-general** — the same pipeline works for a Linear Algebra course as for a Quantum Mechanics course.
 
 Two-phase pipeline:
 
 ```
-Phase 1: /ingest
+Phase 1: /paideia ingest
   materials/**/*.pdf  →  converted/**/*.md      (via pdf skill)
   materials/**/*.md   →  (copied as-is)
 
-Phase 2: /analyze
+Phase 2: /paideia analyze
   converted/** + materials/*.md  →  course-index/patterns.md
                                      course-index/coverage.md
                                      course-index/summary.md
@@ -24,10 +24,10 @@ Phase 2: /analyze
 
 ## When to load
 
-- User runs `/ingest` or `/analyze`
+- User runs `/paideia ingest` or `/paideia analyze`
 - User mentions adding new course materials
 - User asks "what does this course cover" or "what are the key techniques"
-- Downstream commands (`/twin`, `/blind`, `/pattern`, `/hwmap`) need `course-index/` data that doesn't exist yet
+- Downstream commands (`/paideia twin`, `/paideia blind`, `/paideia pattern`, `/paideia hwmap`) need `course-index/` data that doesn't exist yet
 
 ## Phase 1: Ingest
 
@@ -42,9 +42,9 @@ Ambiguous location (e.g., a PDF in `materials/` root)? Ask user once to categori
 
 ### Conversion
 
-**All `.pdf` files in `materials/**` go through the vision pipeline.** `pdfplumber` was tried as a fast path and proved unreliable on course materials — even prose-heavy textbook pages silently word-salad when they mix equations or multi-column figures. Routing everything uniformly through vision is simpler than maintaining per-category heuristics with fallbacks. Full pipeline in `skills/pdf/VISION.md`; the short form:
+**All `.pdf` files in `materials/**` go through the vision pipeline.** `pdfplumber` was tried as a fast path and proved unreliable on course materials — even prose-heavy textbook pages silently word-salad when they mix equations or multi-column figures. Routing everything uniformly through vision is simpler than maintaining per-category heuristics with fallbacks. Full pipeline in `skills/paideia-pdf/VISION.md`; the short form:
 
-1. Load `skills/pdf/SKILL.md` and `skills/pdf/VISION.md`.
+1. Load `skills/paideia-pdf/SKILL.md` and `skills/paideia-pdf/VISION.md`.
 2. Render each PDF to PNG at `dpi=160` (via `pdf2image`) into `converted/<category>/_pages/<stem>/`.
 3. Resize all rendered PNGs to ≤1800 px on the long edge **before** any agent starts reading — this is the hard 2000 px many-image limit; violating it wastes entire agent runs.
 4. Spawn one parallel `general-purpose` agent per PDF. Each agent reads its own pages **sequentially** (not in parallel batches — same dimension limit) and transcribes to clean LaTeX markdown (`$...$` / `$$...$$`). Unreadable symbols get `[?]`.
@@ -66,7 +66,7 @@ After ingest completes, print a summary table:
 | homework | ... | ... | ... |
 | solutions | ... | ... | ... |
 
-And (in `INTERFACE_LANG` from `.course-meta`, default `en`): "Next: run `/analyze` to generate the patterns / coverage indexes."
+And (in `INTERFACE_LANG` from `.course-meta`, default `en`): "Next: run `/paideia analyze` to generate the patterns / coverage indexes."
 
 ## Phase 2: Analyze
 
@@ -190,4 +190,4 @@ course-index/
 └── coverage.md              ← HW↔§ map, blind spots flagged
 ```
 
-All downstream commands (`/twin`, `/blind`, `/chain`, `/pattern`, `/hwmap`) read from these three index files, not from the raw materials. This makes re-analysis cheap (edit index manually if needed) and keeps commands domain-agnostic.
+All downstream commands (`/paideia twin`, `/paideia blind`, `/paideia chain`, `/paideia pattern`, `/paideia hwmap`) read from these three index files, not from the raw materials. This makes re-analysis cheap (edit index manually if needed) and keeps commands domain-agnostic.

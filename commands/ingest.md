@@ -7,7 +7,7 @@ argument-hint: [--force to reconvert everything]
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose must be in that language. Keep in English regardless: file paths, slash command names, table column headers (`Category`, `Converted`, `Skipped (already done)`, `Failed`), and provenance comments.
 
-Load `skills/pdf/SKILL.md`, `skills/pdf/VISION.md`, and `skills/course-builder/SKILL.md`.
+Load `skills/paideia-pdf/SKILL.md`, `skills/paideia-pdf/VISION.md`, and `skills/paideia-course-builder/SKILL.md`.
 
 Arguments: the arguments provided above
 
@@ -88,7 +88,7 @@ Input: page images at <abs_path>/_pages/<stem>/p01.png through pNN.png
 Output: overwrite <abs_path>/<stem>.md
 
 Procedure:
-1. Read each page image with the Read tool — one at a time, not in
+1. Read each page image with the read_file tool — one at a time, not in
    parallel batches, to stay under the per-request image-dimension
    budget. After reading and transcribing a page, move to the next.
 2. Transcribe each page into markdown, preserving the page's reading

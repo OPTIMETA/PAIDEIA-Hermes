@@ -7,7 +7,7 @@ argument-hint: <§ number, keyword, Pk id, or "all">
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose must be in that language. Keep in English regardless: file paths, slash command names, pattern IDs (P1, P2…), and the pattern-card field labels (`Recognition:`, `Move:`, `Seen in:`, `Topic:`).
 
-Read `course-index/patterns.md`. If missing, tell the user to run `/analyze` first.
+Read `course-index/patterns.md`. If missing, tell the user to run `/paideia analyze` first.
 
 Query: the arguments provided above
 
@@ -30,6 +30,6 @@ Procedure:
    ```
 
 3. **End with a prompt** (in $INTERFACE_LANG):
-   "Any pattern here that would be hard to recognize at first sight? Tell me its number — we'll drill just that one with `/blind <problem>`."
+   "Any pattern here that would be hard to recognize at first sight? Tell me its number — we'll drill just that one with `/paideia blind <problem>`."
 
 Keep total output under 40 lines. This is a recognition tool, not a tutorial. If the user wants depth on one pattern, they'll ask.

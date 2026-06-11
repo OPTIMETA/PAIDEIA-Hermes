@@ -1,6 +1,6 @@
 ---
 name: paideia-answer-processing
-description: Use whenever the user uploads a hand-written or scanned answer PDF to be graded against a reference solution. Converts answer PDFs in `answers/*.pdf` to markdown in `answers/converted/*.md` using the pdf skill (OCR as needed), then performs strategy-based grading against `converted/solutions/*.md` or `quizzes/*_answers.md`. Invoked by `/grade`.
+description: Use whenever the user uploads a hand-written or scanned answer PDF to be graded against a reference solution. Converts answer PDFs in `answers/*.pdf` to markdown in `answers/converted/*.md` using the pdf skill (OCR as needed), then performs strategy-based grading against `converted/solutions/*.md` or `quizzes/*_answers.md`. Invoked by `/paideia grade`.
 ---
 
 # Answer Processing
@@ -8,7 +8,7 @@ description: Use whenever the user uploads a hand-written or scanned answer PDF 
 ## When to load
 
 - User uploads an answer PDF and asks to grade it
-- `/grade` is invoked
+- `/paideia grade` is invoked
 - User says "I finished the quiz, here's my work"
 
 ## Core pipeline
@@ -25,7 +25,7 @@ grade report → stdout (compact) + errors/log.md (append)
 
 ### Step 1: Locate the answer file
 
-If `/grade` was called with an argument, use it as a hint. Otherwise find the most recently modified file in `answers/` (not `answers/converted/`).
+If `/paideia grade` was called with an argument, use it as a hint. Otherwise find the most recently modified file in `answers/` (not `answers/converted/`).
 
 ### Step 2: Convert PDF to MD (if PDF)
 
@@ -35,7 +35,7 @@ If `/grade` was called with an argument, use it as a hint. Otherwise find the mo
 python3 "${PAIDEIA_PLUGIN_ROOT}/pd_vision_ocr.py" answers/<name>.pdf answers/converted/<name>.md
 ```
 
-The script handles model warmup, page-by-page inference, and tier fallback. See `.claude/skills/vision-ocr/SKILL.md`. The output header tells the grader which tier produced the text:
+The script handles model warmup, page-by-page inference, and tier fallback. See `skills/paideia-vision-ocr/SKILL.md`. The output header tells the grader which tier produced the text:
 
 - `<!-- SOURCE: ..., qwen3-vl:8b @ 300dpi, N pages -->` → high-confidence
 - `<!-- TIER: tesseract fallback -->` → degraded; treat results conservatively
@@ -82,7 +82,7 @@ For each problem/part, produce a verdict:
 
 ### Step 6: Log errors
 
-**Canonical `errors/log.md` schema — single source of truth.** Every command that appends here (`/grade`, `/blind`, future drills) MUST use exactly these keys. Downstream readers (`statusline.py`, `weakmap`, `session_start.py`) pattern-match on `pattern:` and `problem_id:` lines; any drift silently hides entries.
+**Canonical `errors/log.md` schema — single source of truth.** Every command that appends here (`/paideia grade`, `/paideia blind`, future drills) MUST use exactly these keys. Downstream readers (`pd_status.py`, `weakmap`, `pd_banner.py`) pattern-match on `pattern:` and `problem_id:` lines; any drift silently hides entries.
 
 For each non-✅ entry, append to `errors/log.md`:
 
@@ -107,7 +107,7 @@ Compact table, no verbose explanations:
 | P3 | ✅ | ✅ | ✅ | PASS |
 
 Dominant issue: pattern-missed on P2 (used brute-force integration; should use residue theorem, P7).
-Drill next: /blind <problem testing P7>, or /pattern P7 for quick review.
+Drill next: /paideia blind <problem testing P7>, or /paideia pattern P7 for quick review.
 ```
 
 Keep this under 15 lines of output.
@@ -118,7 +118,7 @@ Keep this under 15 lines of output.
 If OCR yields <100 chars total, ask the user (in `INTERFACE_LANG` from `.course-meta`, default `en`):
 "OCR returned too little. PDF quality may be low or the handwriting too small. Options:
 (a) re-scan brighter/larger and re-upload
-(b) type the answer into `.md` and save it to `answers/converted/<name>.md`, then `/grade` again"
+(b) type the answer into `.md` and save it to `answers/converted/<name>.md`, then `/paideia grade` again"
 
 ### User uploads .md directly
 Skip PDF conversion. Read `answers/<name>.md` directly. Everything else is the same.
@@ -139,7 +139,7 @@ If the user pastes their work directly into chat (not as PDF), grade it from con
 
 ## Integration
 
-- Called by `/grade`
+- Called by `/paideia grade`
 - Uses `pdf` skill for OCR
 - Reads `course-index/patterns.md` (pattern IDs) and `converted/solutions/` or equivalent
 - Writes to `errors/log.md` and `answers/converted/`

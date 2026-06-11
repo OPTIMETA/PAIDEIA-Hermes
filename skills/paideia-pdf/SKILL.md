@@ -9,8 +9,8 @@ license: Proprietary (Anthropic). Condensed excerpt; see LICENSE in anthropics/s
 ## When to use this skill
 
 Load this skill whenever the workflow involves PDF input or output. In the paideia context specifically:
-- Converting `materials/**/*.pdf` to markdown in `converted/**/*.md` (via `/ingest`)
-- Converting hand-written answer PDFs in `answers/*.pdf` to markdown in `answers/converted/*.md` (via `/grade`)
+- Converting `materials/**/*.pdf` to markdown in `converted/**/*.md` (via `/paideia ingest`)
+- Converting hand-written answer PDFs in `answers/*.pdf` to markdown in `answers/converted/*.md` (via `/paideia grade`)
 - OCR for scanned lecture notes, textbook chapters, or hand-written work
 
 ## Quick decision tree

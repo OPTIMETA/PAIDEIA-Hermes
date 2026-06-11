@@ -7,7 +7,7 @@ argument-hint: "[paste the Exam Radar copy, or leave empty to read materials/rad
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose — chat output and the narrative parts of generated MDs — must be in that language. Keep in English regardless: file paths, slash command names, the `<!-- exam-radar:v1 ... -->` marker, table column headers (`Topic`, `Exam prob`, `Zone`, `Lecture emphasis`, `§`, `Title`, `HW coverage`, `Exam tier`), tier markers (🔥🔥/🔥/🟡/⚪), the 🎙 signal flag, pattern IDs (P1..Pk), and § / Ch anchors — downstream tools (`weakmap`, `hwmap`, `analyze`) regex on them.
 
-Load `skills/alt-import/SKILL.md` and `skills/course-builder/SKILL.md` (the latter for the `coverage.md` schema you will annotate).
+Load `skills/paideia-alt-import/SKILL.md` and `skills/paideia-course-builder/SKILL.md` (the latter for the `coverage.md` schema you will annotate).
 
 Arguments (the pasted Exam Radar export, may be multi-line): the arguments provided above
 
@@ -26,7 +26,7 @@ HW density stays the primary exam-tier signal. Lecture emphasis is layered on as
 
 ## Pipeline
 
-Follow `skills/alt-import/SKILL.md` end to end:
+Follow `skills/paideia-alt-import/SKILL.md` end to end:
 
 1. **Parse** the export (meta + the three zones, each topic as `{name} · 시험확률 {N}%` with optional `· 🎙`).
 2. Write **`course-index/radar.md`** — the canonical lecture-emphasis store.

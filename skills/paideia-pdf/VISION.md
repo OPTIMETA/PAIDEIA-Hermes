@@ -82,7 +82,7 @@ Input: page images at <abs_path>/_pages/<stem>/p01.png through pNN.png
 Output: overwrite <abs_path>/<stem>.md
 
 Procedure:
-1. Read each page image with the Read tool — **one at a time**, not in
+1. Read each page image with the read_file tool — **one at a time**, not in
    parallel batches, to stay under the per-request image-dimension budget.
    After reading and transcribing a page, move to the next.
 2. Transcribe each page into markdown, preserving the page's reading

@@ -7,7 +7,7 @@ argument-hint: "[--pdf to also produce a printable PDF via pdf skill]"
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose — chat output, clarification questions, and narrative sections of any MD file you write (including the cheatsheet's prose) — must be in that language. Keep in English regardless: file paths, slash command names, pattern IDs (P1, P2…), YAML keys, LaTeX, code, and the literal section anchors downstream tools regex on.
 
-Load `skills/exam-drill/SKILL.md`. Read `course-index/patterns.md`, `course-index/coverage.md`, `course-index/summary.md`, and `errors/log.md`.
+Load `skills/paideia-exam-drill/SKILL.md`. Read `course-index/patterns.md`, `course-index/coverage.md`, `course-index/summary.md`, and `errors/log.md`.
 
 Arguments: the arguments provided above
 
@@ -46,7 +46,7 @@ Procedure:
 3. **Write to** `cheatsheet/final.md`.
 
 4. **If `--pdf` in arguments:**
-   - Load `skills/pdf/SKILL.md`
+   - Load `skills/paideia-pdf/SKILL.md`
    - Convert cheatsheet/final.md to `cheatsheet/final.pdf` using reportlab
    - Use 2-column layout, 9pt font, no margins (for maximum density)
    - Remember: NO Unicode subscripts/superscripts in reportlab — use `<sub>`/`<super>` XML tags

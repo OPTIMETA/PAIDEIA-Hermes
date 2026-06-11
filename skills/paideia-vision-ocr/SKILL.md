@@ -1,13 +1,13 @@
 ---
 name: paideia-vision-ocr
-description: Use whenever a hand-written or scanned answer PDF needs transcription to markdown for /grade. Three tiers — Claude native vision (default, no extra install), local Qwen3-VL 8B via ollama (opt-in privacy mode), pytesseract fallback. The engine is selected via `OCR_ENGINE` in `.course-meta` (written by /paideia init-course) and can be overridden per-call with `/paideia grade --ocr=<engine>`.
+description: Use whenever a hand-written or scanned answer PDF needs transcription to markdown for /paideia grade. Three tiers — the model's native vision (default, no extra install), local Qwen3-VL 8B via ollama (opt-in privacy mode), pytesseract fallback. The engine is selected via `OCR_ENGINE` in `.course-meta` (written by /paideia init-course) and can be overridden per-call with `/paideia grade --ocr=<engine>`.
 ---
 
 # Vision-OCR
 
 ## When to load
 
-- `/grade` needs to convert `answers/*.pdf` → `answers/converted/*.md`
+- `/paideia grade` needs to convert `answers/*.pdf` → `answers/converted/*.md`
 - Any hand-written / scanned document whose previous tesseract pass was garbled
 - `answer-processing` skill's step-2 conversion
 
@@ -17,20 +17,20 @@ description: Use whenever a hand-written or scanned answer PDF needs transcripti
 
 | Engine | Default? | How it runs | When to pick it |
 |---|---|---|---|
-| `claude` | **Yes** | `pdftoppm` → Claude reads each PNG via the Read tool → synthesizes markdown inline. No external model. No subprocess. | The out-of-the-box path. Nothing to install. Highest fidelity on messy handwriting because Claude vision handles mixed-script (English/Korean) prose with LaTeX well. |
+| `claude` | **Yes** | `pdftoppm` → Claude reads each PNG via the read_file tool → synthesizes markdown inline. No external model. No subprocess. | The out-of-the-box path. Nothing to install. Highest fidelity on messy handwriting because the model's vision handles mixed-script (English/Korean) prose with LaTeX well. |
 | `ollama` | opt-in | `python3 ${PAIDEIA_PLUGIN_ROOT}/pd_vision_ocr.py --engine=ollama <pdf> <md>` — local Qwen3-VL 8B, with an automatic tesseract fall-back if ollama is unreachable. Reads `INTERFACE_LANG` from `.course-meta` to set the prose-language rule. | You want the PDF to never leave the machine *and* you don't want to burn Claude tokens on OCR. Requires one-time `ollama pull qwen3-vl:8b` (~6 GB). |
 | `tesseract` | opt-in | `python3 ${PAIDEIA_PLUGIN_ROOT}/pd_vision_ocr.py --engine=tesseract <pdf> <md>` — pytesseract (`eng` for en, `eng+kor` for ko, derived from `.course-meta`). | Zero cloud + no GPU/VRAM budget. Lowest fidelity on handwriting; fine for typed scans. |
 
-All three emit `answers/converted/<stem>.md` with a `<!-- SOURCE: ... -->` / `<!-- TIER: ... -->` header comment that lets `/grade` caveat the confidence.
+All three emit `answers/converted/<stem>.md` with a `<!-- SOURCE: ... -->` / `<!-- TIER: ... -->` header comment that lets `/paideia grade` caveat the confidence.
 
-## Tier 0 — Claude native vision (default)
+## Tier 0 — the model's native vision (default)
 
-**Pipeline (driven by the `/grade` command, not this script):**
+**Pipeline (driven by the `/paideia grade` command, not this script):**
 
 ```
 answers/<stem>.pdf
   ↓ pdftoppm -r 200 -png <pdf> <tmpdir>/page   # rasterize to PNG per page
-  ↓ Claude reads <tmpdir>/page-1.png, page-2.png, ... via the Read tool
+  ↓ Claude reads <tmpdir>/page-1.png, page-2.png, ... via the read_file tool
   ↓ Claude synthesizes clean MD following the prompt contract below
 answers/converted/<stem>.md
    └── header:  <!-- SOURCE: <stem>.pdf, claude-vision (native), N pages -->
@@ -92,7 +92,7 @@ If you edit the prompt, keep these six clauses — they're what separates useful
 **All engines need:**
 - `poppler` binaries (`pdftoppm`, used by pdf2image). `brew install poppler` / `apt-get install poppler-utils`.
 
-**Tier 0 (claude):** nothing beyond Claude Code itself.
+**Tier 0 (claude):** nothing beyond hermes itself.
 
 **Tier 1 (ollama) extras:**
 - `ollama` CLI + model `qwen3-vl:8b` (~6.1 GB). `brew install ollama && ollama serve & && ollama pull qwen3-vl:8b`.
@@ -123,11 +123,11 @@ If you edit the prompt, keep these six clauses — they're what separates useful
 
 - ❌ Don't pass base64 via `curl -d <arg>` — ARG_MAX overflow. Use stdlib `urllib` with POST body.
 - ❌ Don't send PNG to Qwen3-VL — JPEG q=90 is 5–10× smaller with no impact on VLM accuracy.
-- ❌ Don't ask any tier to grade or solve. That's `/grade`'s job; OCR must stay pure transcription.
-- ❌ Don't trust Tier 1b (silent tesseract fallback) without reading the header — the file comment tells `/grade` to caveat its verdict.
+- ❌ Don't ask any tier to grade or solve. That's `/paideia grade`'s job; OCR must stay pure transcription.
+- ❌ Don't trust Tier 1b (silent tesseract fallback) without reading the header — the file comment tells `/paideia grade` to caveat its verdict.
 
 ## Integration
 
-- Called by `/grade` via `answer-processing` skill step 2
-- Called by `/ingest` (future) for hand-written lecture notes, if any appear in `materials/`
+- Called by `/paideia grade` via `answer-processing` skill step 2
+- Called by `/paideia ingest` (future) for hand-written lecture notes, if any appear in `materials/`
 - Writes to `answers/converted/` only; does not modify originals in `answers/`

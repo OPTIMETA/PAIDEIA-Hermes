@@ -7,7 +7,7 @@ argument-hint: <equation or theorem name>
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose — chat output and narrative sections of the generated derivation MD — must be in that language. Keep in English regardless: file paths, slash command names, pattern IDs, LaTeX, and any literal section anchors downstream tools regex on.
 
-Load `skills/course-builder/SKILL.md` for material locations. Also read `course-index/summary.md` to resolve the target.
+Load `skills/paideia-course-builder/SKILL.md` for material locations. Also read `course-index/summary.md` to resolve the target.
 
 Target: the arguments provided above
 

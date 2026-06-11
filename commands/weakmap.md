@@ -11,7 +11,7 @@ Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose 
 
 ## Purpose
 
-Use when the user notices "I think I'm weak at this point" while studying — they record it with `/weakmap <concept>` and it accumulates in the report. Called without arguments, it takes a fresh snapshot from the latest error log.
+Use when the user notices "I think I'm weak at this point" while studying — they record it with `/paideia weakmap <concept>` and it accumulates in the report. Called without arguments, it takes a fresh snapshot from the latest error log.
 
 ## Storage rules
 
@@ -59,10 +59,10 @@ Use when the user notices "I think I'm weak at this point" while studying — th
    → Recommended: `/<command> <target>`
 
 (Recommendation rules by error_type:)
-- `pattern-missed` / `wrong-variable` → `/blind <problem>` or `/derive <concept>`
-- `algebraic` / `sign` → `/quiz <topic> 3`
+- `pattern-missed` / `wrong-variable` → `/paideia blind <problem>` or `/paideia derive <concept>`
+- `algebraic` / `sign` → `/paideia quiz <topic> 3`
 - `definition` → 5-min re-read of the relevant § in `converted/lectures/`
-- `wrong-end-form` → `/pattern <Pk>` recognition drill
+- `wrong-end-form` → `/paideia pattern <Pk>` recognition drill
 
 ## User-declared weaknesses
 
@@ -77,7 +77,7 @@ Use when the user notices "I think I'm weak at this point" while studying — th
 § marked 🔥🔥 / 🔥 (Exam-primary, Exam-likely) in `coverage.md` but with no entry in `errors/log.md`:
 - §X, §Y
 
-→ A high-HW-density section with nothing in the error log means either (a) the user already has it, or (b) they haven't tried. Run `/blind <hw-id>` to find out fast.
+→ A high-HW-density section with nothing in the error log means either (a) the user already has it, or (b) they haven't tried. Run `/paideia blind <hw-id>` to find out fast.
 
 (⚪ Low-risk sections are excluded from this section. No HW → low exam probability → not a weakmap priority.)
 
@@ -90,4 +90,4 @@ Use when the user notices "I think I'm weak at this point" while studying — th
 
 - One line with the file path that was saved.
 - Do NOT paste the full report. Output only **Top 5 + one-line verdict** as a summary (≤30 lines).
-- Close with (in $INTERFACE_LANG): "Add new weak points with `/weakmap <concept>`; generate problems from this report with `/quiz weakmap`."
+- Close with (in $INTERFACE_LANG): "Add new weak points with `/paideia weakmap <concept>`; generate problems from this report with `/paideia quiz weakmap`."

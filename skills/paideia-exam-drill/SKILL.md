@@ -1,6 +1,6 @@
 ---
 name: paideia-exam-drill
-description: Use when the user wants exam-focused drilling from the course's analyzed material. Generates twin variants of known problems (`/twin`), runs strategy-level blind drills on known problems (`/blind`), creates integration problems chaining multiple patterns (`/chain`), surfaces pattern cards (`/pattern`), and shows coverage/blind-spot maps (`/hwmap`). Reads from `course-index/patterns.md`, `course-index/coverage.md`, and `converted/solutions/*.md`. Works for any math/physics course that has been ingested and analyzed.
+description: Use when the user wants exam-focused drilling from the course's analyzed material. Generates twin variants of known problems (`/paideia twin`), runs strategy-level blind drills on known problems (`/paideia blind`), creates integration problems chaining multiple patterns (`/paideia chain`), surfaces pattern cards (`/paideia pattern`), and shows coverage/blind-spot maps (`/paideia hwmap`). Reads from `course-index/patterns.md`, `course-index/coverage.md`, and `converted/solutions/*.md`. Works for any math/physics course that has been ingested and analyzed.
 ---
 
 # Exam Drill
@@ -11,7 +11,7 @@ description: Use when the user wants exam-focused drilling from the course's ana
 
 1. **Generation side (Claude → file).** Problems, variants, and clean reference derivations are written as markdown files to `quizzes/`, `twins/`, `chain/`, `derivations/`. The user views them; no math dialogue in the terminal.
 
-2. **Answer side (user → PDF).** The user solves on paper, scans as PDF, uploads to `answers/<name>.pdf`. The `answer-processing` skill (auto-loaded by `/grade`) converts the PDF to markdown and grades.
+2. **Answer side (user → PDF).** The user solves on paper, scans as PDF, uploads to `answers/<name>.pdf`. The `answer-processing` skill (auto-loaded by `/paideia grade`) converts the PDF to markdown and grades.
 
 3. **Strategy checks (when user is online)** — when a command asks the user to verify understanding without producing a full written solution, it asks only for the *strategy* in 3–5 lines of prose (written in `INTERFACE_LANG` from `.course-meta`, default `en`): which pattern(s), which variables are fixed/expanded, what form the answer takes. Strategy matching is stronger evidence of mastery than line-by-line algebra.
 
@@ -20,15 +20,15 @@ description: Use when the user wants exam-focused drilling from the course's ana
 **HW density = exam probability.** The professor has already told you, through HW, where the exam points live. Every drill command **must bias toward HW-emphasized sections** (🔥🔥 Exam-primary > 🔥 Exam-likely > 🟡 Exam-possible). Sections with no HW (⚪ Low-risk) are **not** "blind spots waiting to bite" — they are the professor's signal of what is off the exam. Do not treat low-HW sections as high-risk.
 
 Concretely:
-- `/twin`, `/blind` default to the highest-HW-density problems when the user doesn't specify one.
-- `/chain` composes patterns drawn from Exam-primary sections; avoid pulling patterns from ⚪ sections unless the user explicitly asks.
-- `/mock` problem weighting follows HW density (see `commands/mock.md`).
-- `/quiz all` samples ≥70% from 🔥🔥, ~25% from 🔥, ≤5% from 🟡, 0% from ⚪.
+- `/paideia twin`, `/paideia blind` default to the highest-HW-density problems when the user doesn't specify one.
+- `/paideia chain` composes patterns drawn from Exam-primary sections; avoid pulling patterns from ⚪ sections unless the user explicitly asks.
+- `/paideia mock` problem weighting follows HW density (see `commands/mock.md`).
+- `/paideia quiz all` samples ≥70% from 🔥🔥, ~25% from 🔥, ≤5% from 🟡, 0% from ⚪.
 - If the user requests a ⚪ section drill, comply once but warn that exam probability is low.
 
 ## Prerequisites
 
-This skill assumes `/ingest` and `/analyze` have been run. If `course-index/patterns.md` or `course-index/coverage.md` don't exist, tell the user to run those first.
+This skill assumes `/paideia ingest` and `/paideia analyze` have been run. If `course-index/patterns.md` or `course-index/coverage.md` don't exist, tell the user to run those first.
 
 ## Files read
 
@@ -49,14 +49,14 @@ This skill assumes `/ingest` and `/analyze` have been run. If `course-index/patt
 
 ## Command patterns
 
-### `/twin <problem-id>`
+### `/paideia twin <problem-id>`
 
 1. Locate `<problem-id>` in `converted/homework/` and `converted/solutions/`.
 2. Identify patterns used via `course-index/patterns.md`.
 3. Apply twin-recipe.md rules: hold pattern and topic invariant; vary system, numbers, direction, names.
 4. Save problem to `twins/<id>_<ts>.md` and solution to `twins/<id>_<ts>_sol.md`. Do not reveal solution unless user either (a) uploads their answer PDF, or (b) describes a correct strategy.
 
-### `/blind <problem-id>`
+### `/paideia blind <problem-id>`
 
 1. Present the problem verbatim from `converted/homework/`.
 2. Ask for strategy (3–5 lines, in $INTERFACE_LANG):
@@ -66,18 +66,18 @@ This skill assumes `/ingest` and `/analyze` have been run. If `course-index/patt
 3. Compare against `converted/solutions/`. Three checks: pattern / variable-choice / end-form.
 4. On success, copy the relevant solution section into `derivations/<stem>-<n>.md`. On failure, flag the specific axis and log to `errors/log.md`.
 
-### `/chain <N>`
+### `/paideia chain <N>`
 
 1. Pick N patterns from different source problems (per `course-index/coverage.md`).
 2. Design a problem that requires composing them sequentially in parts (a), (b), (c).
 3. Bias toward user's weak zone (see `course-index/coverage.md` Critical column).
 4. Save problem and solution; prompt for part-by-part strategy or PDF upload.
 
-### `/pattern [§ or keyword or "all"]`
+### `/paideia pattern [§ or keyword or "all"]`
 
 Read-only. Filter `course-index/patterns.md` by the query and return compact pattern cards.
 
-### `/hwmap [§ or "blind"]`
+### `/paideia hwmap [§ or "blind"]`
 
 Read-only. Project `course-index/coverage.md` by the query. `blind` lists all 🔴 and 🔴🔴 entries with drill recommendations.
 
@@ -114,12 +114,12 @@ When any drill reveals an error, append to `errors/log.md`:
   date: <ISO8601>
 ```
 
-This is the **same canonical schema** as `skills/answer-processing/SKILL.md` Step 6 — keep every key, including `source:` (the statusline's mock-phase detection regexes on it). `/weakmap` (top-level command) consumes this log; this skill just produces entries.
+This is the **same canonical schema** as `skills/paideia-answer-processing/SKILL.md` Step 6 — keep every key, including `source:` (the statusline's mock-phase detection regexes on it). `/paideia weakmap` (top-level command) consumes this log; this skill just produces entries.
 
 ## Cross-skill coordination
 
-- `/grade` → loads `answer-processing` skill (PDF → MD → compare with `converted/solutions/`).
-- `/ingest` or `/analyze` → loads `course-builder` skill.
+- `/paideia grade` → loads `answer-processing` skill (PDF → MD → compare with `converted/solutions/`).
+- `/paideia ingest` or `/paideia analyze` → loads `course-builder` skill.
 - Any PDF read/write → loads `pdf` skill.
 - All drill outputs (twins/, chain/, quizzes/) use plain markdown — no PDF creation inside drill commands. The user uploads answer PDFs; Claude doesn't make PDFs during drilling.
 

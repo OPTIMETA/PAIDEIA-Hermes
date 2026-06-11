@@ -1,5 +1,5 @@
 ---
-description: Generate a twin variant of a known HW/example problem. Same technique, new surface. User solves on paper, uploads PDF, runs /grade.
+description: Generate a twin variant of a known HW/example problem. Same technique, new surface. User solves on paper, uploads PDF, runs /paideia grade.
 argument-hint: <problem-id, e.g. "hw4-p3" or "example-5.2">
 ---
 
@@ -7,7 +7,7 @@ argument-hint: <problem-id, e.g. "hw4-p3" or "example-5.2">
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose must be in that language. Keep in English regardless: file paths, slash command names, pattern IDs, LaTeX, and YAML keys.
 
-Load `skills/exam-drill/SKILL.md` and `skills/exam-drill/twin-recipe.md`. Read `course-index/patterns.md`.
+Load `skills/paideia-exam-drill/SKILL.md` and `skills/paideia-exam-drill/twin-recipe.md`. Read `course-index/patterns.md`.
 
 Target: the arguments provided above
 
@@ -25,7 +25,7 @@ Procedure:
 
 5. **Print to chat** (in $INTERFACE_LANG):
    - The twin problem statement (do NOT reference the original problem ID in the output)
-   - Instruction: "Solve on paper, upload as `answers/twin_<id>_<ts>.pdf`, then `/grade`. Or just describe the strategy in 3–5 lines."
+   - Instruction: "Solve on paper, upload as `answers/twin_<id>_<ts>.pdf`, then `/paideia grade`. Or just describe the strategy in 3–5 lines."
 
 6. **If user responds with strategy text** (not PDF):
    - Match 3 axes: pattern / variable-choice / end-form

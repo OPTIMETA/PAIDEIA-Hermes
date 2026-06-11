@@ -1,5 +1,5 @@
 ---
-description: Generate a mock exam matched to the course's structure (inferred from course-index). Saves problem MD + hidden solution MD. User solves on paper, uploads PDF, runs /grade.
+description: Generate a mock exam matched to the course's structure (inferred from course-index). Saves problem MD + hidden solution MD. User solves on paper, uploads PDF, runs /paideia grade.
 argument-hint: "<total minutes, default 90> [optional emphasize=§X,§Y]"
 ---
 
@@ -7,7 +7,7 @@ argument-hint: "<total minutes, default 90> [optional emphasize=§X,§Y]"
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose must be in that language. Keep in English regardless: file paths, slash command names, pattern IDs, LaTeX, tier markers, and the mock exam's structural labels (`# Mock Exam — <date>`, `**Duration**`, `**Total**`, `## P<n>`).
 
-Load `skills/exam-drill/SKILL.md`. Read `course-index/summary.md`, `course-index/patterns.md`, `course-index/coverage.md`.
+Load `skills/paideia-exam-drill/SKILL.md`. Read `course-index/summary.md`, `course-index/patterns.md`, `course-index/coverage.md`.
 
 Arguments: the arguments provided above
 (First token: minutes. Remaining: optional `emphasize=...` list.)
@@ -36,7 +36,7 @@ Procedure:
 4. **Print to chat:**
    - The full exam (problem statements with point values and time suggestions)
    - Total points summing to 100 (or inferred weighting)
-   - Closing line (in $INTERFACE_LANG): "Timer: the arguments provided above min. Solve on paper, upload as `answers/mock_<ts>.pdf`, then `/grade`."
+   - Closing line (in $INTERFACE_LANG): "Timer: the arguments provided above min. Solve on paper, upload as `answers/mock_<ts>.pdf`, then `/paideia grade`."
 
 5. **Do NOT** reveal which patterns are being tested in the problem statements. The user should identify them during solving.
 
@@ -60,4 +60,4 @@ Procedure:
 ...
 ```
 
-The `_sol.md` sibling has the full reference solution + pattern labels + typical point distribution. Only opens via `/grade`.
+The `_sol.md` sibling has the full reference solution + pattern labels + typical point distribution. Only opens via `/paideia grade`.

@@ -7,7 +7,7 @@ argument-hint: "[--ocr=claude|ollama|tesseract] [optional path to answer file; d
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose — chat output, grade-table commentary, the OCR quality escape-hatch menu — must be in that language. Keep in English regardless: file paths, slash command names (`/paideia grade`, `/paideia blind`, …), pattern IDs (P1, P2…), YAML keys, LaTeX, OCR engine names (`claude`, `ollama`, `tesseract`), and the grade table's column headers (`P#`, `Pattern`, `Vars`, `End form`, `Overall`). `pd_vision_ocr.py` reads `INTERFACE_LANG` from `.course-meta` on its own to set the VLM's prose-language rule and the tesseract `lang=` code, so the bash invocations below don't need to pass it explicitly.
 
-Load `skills/vision-ocr/SKILL.md`, `skills/pdf/SKILL.md`, and `skills/answer-processing/SKILL.md`.
+Load `skills/paideia-vision-ocr/SKILL.md`, `skills/paideia-pdf/SKILL.md`, and `skills/paideia-answer-processing/SKILL.md`.
 
 Arguments: the arguments provided above
 
@@ -23,7 +23,7 @@ Follow the answer-processing skill pipeline:
 
 2. **Convert PDF → MD.** Dispatch on the selected OCR engine:
 
-   ### 2a. `claude` (default) — native Claude vision, no external model
+   ### 2a. `claude` (default) — native the model's vision, no external model
 
    ```bash
    STEM=$(basename "answers/<stem>.pdf" .pdf)
@@ -47,7 +47,7 @@ Follow the answer-processing skill pipeline:
    PY
    ```
 
-   This produces `$TMPDIR/page-1.png`, `$TMPDIR/page-2.png`, ... (each ≤1800px wide). Now **use the Read tool on each PNG in order** and synthesize clean markdown yourself, following the transcription prompt contract from `skills/vision-ocr/SKILL.md`:
+   This produces `$TMPDIR/page-1.png`, `$TMPDIR/page-2.png`, ... (each ≤1800px wide). Now **use the read_file tool on each PNG in order** and synthesize clean markdown yourself, following the transcription prompt contract from `skills/paideia-vision-ocr/SKILL.md`:
 
    - Prose stays in its original language (English, Korean, etc.) — do not translate.
    - Math as `$...$` / `$$...$$`.
@@ -82,7 +82,7 @@ Follow the answer-processing skill pipeline:
      "answers/<stem>.pdf" "answers/converted/<stem>.md"
    ```
 
-   Uses `qwen3-vl:8b` via ollama. The script reads `INTERFACE_LANG` from `.course-meta` in CWD so the prose-language rule in the VLM prompt matches the course's language. Auto-falls back to tesseract on any exception (timeout / ollama down / model missing). Tier is recorded in the file header. See `skills/vision-ocr/SKILL.md` for details.
+   Uses `qwen3-vl:8b` via ollama. The script reads `INTERFACE_LANG` from `.course-meta` in CWD so the prose-language rule in the VLM prompt matches the course's language. Auto-falls back to tesseract on any exception (timeout / ollama down / model missing). Tier is recorded in the file header. See `skills/paideia-vision-ocr/SKILL.md` for details.
 
    ### 2c. `tesseract` — explicit, skip ollama
 
@@ -147,7 +147,7 @@ Inspect the `<!-- SOURCE: ... -->` / `<!-- TIER: ... -->` header comment in `ans
   ```
   OCR quality is low (grading reliability degraded).
   Options:
-    (a) /paideia grade --ocr=claude <pdf>   ← retry with Claude vision (no extra install)
+    (a) /paideia grade --ocr=claude <pdf>   ← retry with the model's vision (no extra install)
     (b) re-scan brighter / larger, then /paideia grade again
     (c) type the answer into .md and save it to `answers/converted/<stem>.md`, then /paideia grade
     (d) skip grading and use /paideia blind <problem-id> to verbalize the strategy instead

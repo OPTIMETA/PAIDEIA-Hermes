@@ -1,5 +1,5 @@
 ---
-description: Generate N practice problems on a topic. Saves problem MD + hidden answer MD. User solves on paper, uploads answer PDF, then runs /grade. First arg `weakmap` → auto-load latest weakmap report and target its top weaknesses.
+description: Generate N practice problems on a topic. Saves problem MD + hidden answer MD. User solves on paper, uploads answer PDF, then runs /paideia grade. First arg `weakmap` → auto-load latest weakmap report and target its top weaknesses.
 argument-hint: <topic | § | "weakmap"> [N=5]
 ---
 
@@ -7,17 +7,17 @@ argument-hint: <topic | § | "weakmap"> [N=5]
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose — chat output and narrative parts of the generated quiz MD — must be in that language. Keep in English regardless: file paths, slash command names, pattern IDs (P1, P2…), LaTeX, tier markers, and the per-problem footer template's keyword shape (a one-line italic citation of `§<section>` and `P<k>`).
 
-Load `skills/exam-drill/SKILL.md`. Also load `course-index/summary.md`, `course-index/patterns.md`, `course-index/coverage.md` if they exist.
+Load `skills/paideia-exam-drill/SKILL.md`. Also load `course-index/summary.md`, `course-index/patterns.md`, `course-index/coverage.md` if they exist.
 
 Arguments: the arguments provided above
 (First word: topic, § number, or the literal `weakmap`. Second word if present: number of problems, default 5.)
 
-Prerequisite: if `course-index/` is empty, run `/analyze` first — problems generated without the index will be unfocused.
+Prerequisite: if `course-index/` is empty, run `/paideia analyze` first — problems generated without the index will be unfocused.
 
 Procedure:
 
 0. **Weakmap mode.** If the first arg is `weakmap`:
-   - Find the latest `weakmap/weakmap_*.md` (by mtime). If missing, tell the user to run `/weakmap` first and abort.
+   - Find the latest `weakmap/weakmap_*.md` (by mtime). If missing, tell the user to run `/paideia weakmap` first and abort.
    - Parse its "Top 5 weaknesses" and "User-declared weaknesses" sections to collect a target set of (§, Pk) pairs.
    - Design the N-problem mix so every top weakness is covered at least once; user-declared items take priority. Spread remaining slots over top-ranked error patterns.
    - Filename override: save to `quizzes/weakmap_<ts>.md` (+ `_answers.md`). Cite which weakness entry each problem targets in the footer.
@@ -41,7 +41,7 @@ Procedure:
 4. **Print to chat** (in $INTERFACE_LANG):
    - Filename of the quiz (so user knows where it is)
    - All N problem statements, numbered
-   - Closing line: "Solve on paper, scan, upload as `answers/<topic>_<ts>.pdf`, then `/grade`."
+   - Closing line: "Solve on paper, scan, upload as `answers/<topic>_<ts>.pdf`, then `/paideia grade`."
 
 5. **Do NOT ask the user to type answers in chat.** If they start typing an answer, remind them of the PDF-upload workflow.
 

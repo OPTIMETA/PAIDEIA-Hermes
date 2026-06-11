@@ -7,11 +7,11 @@ argument-hint: "[optional weak-zone topics to emphasize, comma-separated]"
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose — chat output and narrative parts of the generated index MDs — must be in that language. Keep in English regardless: file paths, slash command names, pattern IDs (P1..Pk), tier markers (🔥🔥/🔥/🟡/⚪, ✅✅/✅/🟡/🔴/🔴🔴), § / Ch section anchors, and table column headers (`Problem`, `Primary §`, `Secondary §`, `Patterns`, `HW coverage`, `Exam tier`, etc.) — `weakmap`, `hwmap`, and `quiz` regex on them.
 
-Load `skills/course-builder/SKILL.md`.
+Load `skills/paideia-course-builder/SKILL.md`.
 
 Arguments (user's declared weak zones, comma-separated): the arguments provided above
 
-Prerequisite check: verify that `converted/` contains files. If empty, tell the user to run `/ingest` first.
+Prerequisite check: verify that `converted/` contains files. If empty, tell the user to run `/paideia ingest` first.
 
 Follow the course-builder Phase 2 analyze pipeline.
 
@@ -71,7 +71,7 @@ End the file with a "Recommended drill priority" section ranking the top 6 items
 
 After writing all three files, print to chat:
 
-Print the block below, with prose written in $INTERFACE_LANG. Token-level identifiers (`course-index/`, `summary.md`, `patterns.md`, `coverage.md`, `P1..P<N>`, `/hwmap`, `/pattern`, `/blind`, `§<weak-§>`, `<hw-id>`) stay verbatim either way:
+Print the block below, with prose written in $INTERFACE_LANG. Token-level identifiers (`course-index/`, `summary.md`, `patterns.md`, `coverage.md`, `P1..P<N>`, `/paideia hwmap`, `/paideia pattern`, `/paideia blind`, `§<weak-§>`, `<hw-id>`) stay verbatim either way:
 
 ```
 course-index/ generated.
@@ -81,14 +81,14 @@ course-index/ generated.
 - coverage.md: <A> strongly covered, <B> thin, <C> blind, <D> CRITICAL blind
 
 Top 3 blind spots:
-  1. <§X> — <title>  [recommend: /derive <key-concept>]
-  2. <§Y> — <title>  [recommend: /quiz <§Y>]
-  3. <§Z> — <title>  [recommend: /derive <key-concept>]
+  1. <§X> — <title>  [recommend: /paideia derive <key-concept>]
+  2. <§Y> — <title>  [recommend: /paideia quiz <§Y>]
+  3. <§Z> — <title>  [recommend: /paideia derive <key-concept>]
 
 Next steps:
-  /hwmap blind        — review all blind spots
-  /pattern §<weak-§>  — pattern cards for the weak section
-  /blind <hw-id>      — drill the HW closest to the weakness
+  /paideia hwmap blind        — review all blind spots
+  /paideia pattern §<weak-§>  — pattern cards for the weak section
+  /paideia blind <hw-id>      — drill the HW closest to the weakness
 ```
 
 ## Idempotence

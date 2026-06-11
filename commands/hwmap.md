@@ -7,7 +7,7 @@ argument-hint: [§ number, or "hot" to list exam-primary zones, or "all"]
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose must be in that language. Keep in English regardless: file paths, slash command names, pattern IDs (P1, P2…), tier markers (🔥🔥/🔥/🟡/⚪), and the literal section anchors downstream tools regex on.
 
-Read `course-index/coverage.md`. If missing, tell the user to run `/analyze` first.
+Read `course-index/coverage.md`. If missing, tell the user to run `/paideia analyze` first.
 
 Query: the arguments provided above
 
@@ -22,11 +22,11 @@ Show which problems cover that section, and adjacent sections (§±1) for contex
 Return 🔥🔥 Exam-primary and 🔥 Exam-likely sections, ranked by HW density (highest first). For each:
 - List the HW problems that target it (these are your drill anchors)
 - One-line drill recommendation:
-  - Many HW, pattern fluent → `/twin <hw-id>` (build surface variance)
-  - Many HW, strategy shaky → `/blind <hw-id>` (strategy-check on the real HW)
-  - User has solved HW but forgets the pattern → `/pattern <Pk>` then `/quiz §<n> 3`
+  - Many HW, pattern fluent → `/paideia twin <hw-id>` (build surface variance)
+  - Many HW, strategy shaky → `/paideia blind <hw-id>` (strategy-check on the real HW)
+  - User has solved HW but forgets the pattern → `/paideia pattern <Pk>` then `/paideia quiz §<n> 3`
 
-Do **not** recommend `/derive` here as a default — derivations are for reading gaps, not for drilling exam-likely zones. Use `/derive` only if the user explicitly asks for a clean reference.
+Do **not** recommend `/paideia derive` here as a default — derivations are for reading gaps, not for drilling exam-likely zones. Use `/paideia derive` only if the user explicitly asks for a clean reference.
 
 **If query is `all` or empty:**
 Render an exam-tier distribution table:

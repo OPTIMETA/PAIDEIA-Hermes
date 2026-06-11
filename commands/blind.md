@@ -7,7 +7,7 @@ argument-hint: <problem-id, e.g. "hw4-p3" or "example-5.2">
 
 Read `INTERFACE_LANG` from `.course-meta` (default `en`). All user-facing prose — chat output, clarification questions, and narrative sections of any MD file you write — must be in that language. Keep in English regardless: file paths, slash command names, pattern IDs (P1, P2…), YAML keys (`pattern:`, `error_type:`, `problem_id:`, `source:`, `date:`, `summary:`), LaTeX, code, and the literal section anchors downstream tools regex on (`## One-line verdict`, `## Page N`, `# Vision-OCR transcription`).
 
-Load `skills/exam-drill/SKILL.md`. Read `course-index/patterns.md`.
+Load `skills/paideia-exam-drill/SKILL.md`. Read `course-index/patterns.md`.
 
 Target: the arguments provided above
 
@@ -40,7 +40,7 @@ Procedure:
    - ❌ on any axis → point out specifically which axis failed, WITHOUT revealing correct answer. Ask for revision.
    - After 2 failed attempts on same axis → give a one-line hint referencing the relevant pattern name.
 
-7. **Log errors** if user needed revision. Use the **canonical schema from `skills/answer-processing/SKILL.md` Step 6** — same keys `/grade` writes, so statusline and weakmap see `/blind` errors too. Append to `errors/log.md`:
+7. **Log errors** if user needed revision. Use the **canonical schema from `skills/paideia-answer-processing/SKILL.md` Step 6** — same keys `/paideia grade` writes, so statusline and weakmap see `/paideia blind` errors too. Append to `errors/log.md`:
    ```yaml
    - problem_id: <id>
      pattern: <Pk>
@@ -52,8 +52,8 @@ Procedure:
    Map strategy axis → `error_type`: pattern axis → `pattern-missed`, variable axis → `wrong-variable`, end-form axis → `wrong-end-form`.
 
 8. **Close** (in $INTERFACE_LANG):
-   "To check retention on the same type, do one variant via `/twin <id>`."
+   "To check retention on the same type, do one variant via `/paideia twin <id>`."
 
 ## Why strategy-based, not full-derivation
 
-Exam pattern recognition is the bottleneck — if the user can articulate the correct strategy in 30 seconds, they'll execute it in 10 minutes on the exam. The strategy check IS the drill. Execution is practiced via paper + `/grade`.
+Exam pattern recognition is the bottleneck — if the user can articulate the correct strategy in 30 seconds, they'll execute it in 10 minutes on the exam. The strategy check IS the drill. Execution is practiced via paper + `/paideia grade`.
