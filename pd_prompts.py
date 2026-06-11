@@ -46,7 +46,13 @@ def load_spec(sub: str) -> str | None:
     return None
 
 
-def build_inject(sub: str, args: str, cwd: Path, lang: str) -> str:
+def build_inject(sub: str, args: str, cwd: Path | None, lang: str | None) -> str:
+    """Build the turn the agent runs for an LLM-driven subcommand.
+
+    cwd/lang may be None (gateway path, where the plugin can't know the agent's
+    terminal cwd) — then the working dir is described relatively and the spec's
+    own "Output language" step reads INTERFACE_LANG from .course-meta.
+    """
     spec = load_spec(sub) or f"(no command spec file found for '{sub}.md')"
     # Specs reference ${PAIDEIA_PLUGIN_ROOT} for bundled scripts — resolve it now.
     spec = spec.replace("${PAIDEIA_PLUGIN_ROOT}", str(PLUGIN_ROOT))
@@ -61,13 +67,27 @@ def build_inject(sub: str, args: str, cwd: Path, lang: str) -> str:
             "(they reference further files relative to their own directory), "
             "then execute the command spec:\n" + bullets + "\n\n"
         )
+
+    cwd_line = (
+        f"Working directory (course root): {cwd}"
+        if cwd is not None
+        else "Working directory (course root): your current working directory "
+        "(the PAIDEIA course folder for this session)"
+    )
+    lang_line = (
+        f"Interface language: {lang} — write all prose to the user in this language; "
+        if lang
+        else "Interface language: read INTERFACE_LANG from .course-meta in the "
+        "working directory and write all prose to the user in that language; "
+    ) + (
+        "keep file paths, slash-command names, pattern IDs (P1, P2…), YAML keys, "
+        "LaTeX, and tier markers (🔥🔥/🔥/🟡/⚪) verbatim in any language."
+    )
     return (
         f"[PAIDEIA · /paideia {sub}]\n"
-        f"Working directory (course root): {cwd}\n"
+        f"{cwd_line}\n"
         f"Plugin root (bundled scripts/skills): {PLUGIN_ROOT}\n"
-        f"Interface language: {lang} — write all prose to the user in this language; "
-        f"keep file paths, slash-command names, pattern IDs (P1, P2…), YAML keys, "
-        f"LaTeX, and tier markers (🔥🔥/🔥/🟡/⚪) verbatim in any language.\n"
+        f"{lang_line}\n"
         f"Arguments: {args.strip() or '(none)'}\n\n"
         f"{skill_block}"
         f"Execute the command spec below against the course workspace in the "

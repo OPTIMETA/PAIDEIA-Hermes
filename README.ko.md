@@ -13,7 +13,7 @@ PAIDEIA-Hermes는 [OPTIMETA/PAIDEIA](https://github.com/OPTIMETA/PAIDEIA)(Claude
 `~/.hermes/config.yaml`이 `provider: openai-codex`라면 PAIDEIA-Hermes는 Codex로
 구동되며, `/model`로 바꿔도 PAIDEIA 쪽은 아무것도 바뀌지 않습니다.
 
-> **상태 (v0.2.0):** 실제 Codex(gpt-5.5)로 hermes를 구동하여 전체 라이프사이클
+> **상태 (v0.3.0):** 실제 Codex(gpt-5.5)로 hermes를 구동하여 전체 라이프사이클
 > (`init → ingest → analyze → hwmap → quiz → grade → weakmap → mock →
 > cheatsheet --pdf → twin → derive → chain`)을 종단 검증했습니다. phase 머신
 > (setup→diag→drill→cram), `errors/log.md` 스키마 계약, en/ko i18n 모두 확인.
@@ -90,6 +90,20 @@ hermes plugins enable paideia
 `/paideia quiz weakmap`이 바로 그 약점을 드릴.
 
 ---
+
+## Slack 및 기타 메시징 게이트웨이
+
+PAIDEIA-Hermes는 CLI뿐 아니라 hermes 메시징 게이트웨이(Slack, Discord, Telegram, …)
+에서도 동작합니다. 플랫폼의 타입드-커맨드 접두사를 쓰세요(Slack/Matrix는 `!`, 그 외 대부분 `/`):
+
+- **결정적 커맨드** — `!paideia status`, `!paideia doctor`,
+  `!paideia init name="…" exam=…`, `!paideia help` — 텍스트로 바로 응답.
+- **에이전트 구동 커맨드** — `!paideia ingest|analyze|quiz|grade|weakmap|mock|twin|…` —
+  `pre_gateway_dispatch` 훅이 이를 일반 에이전트 턴으로 재작성합니다(게이트웨이에선 CLI의
+  `inject_message`를 못 씀). 접두사 없는 문구도 동작: `paideia quiz §1.2 3`.
+
+게이트웨이는 설정된 작업 디렉터리(`terminal.cwd`)에서 돌므로 그 경로를 코스 폴더로 두세요.
+각 커맨드는 `.course-meta`의 `INTERFACE_LANG`을 직접 읽으므로 Slack에서도 en/ko 산문이 유지됩니다.
 
 ## PAIDEIA → hermes-agent 매핑
 

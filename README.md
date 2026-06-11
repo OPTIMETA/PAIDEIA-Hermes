@@ -14,7 +14,7 @@ It is **model-agnostic**: it runs on whatever provider hermes is pointed at. If
 your `~/.hermes/config.yaml` uses `provider: openai-codex`, PAIDEIA-Hermes is
 driven by Codex; switch with `/model` and nothing about PAIDEIA changes.
 
-> **Status (v0.2.0):** validated end-to-end driving real Codex (gpt-5.5) through
+> **Status (v0.3.0):** validated end-to-end driving real Codex (gpt-5.5) through
 > hermes across the full lifecycle — `init → ingest → analyze → hwmap → quiz →
 > grade → weakmap → mock → cheatsheet --pdf → twin → derive → chain` — with the
 > phase machine (setup→diag→drill→cram), the `errors/log.md` schema contract,
@@ -92,6 +92,23 @@ variable choice, end-form), logging misses to `errors/log.md`. `/paideia weakmap
 ranks them; `/paideia quiz weakmap` drills exactly those.
 
 ---
+
+## Slack & other messaging gateways
+
+PAIDEIA-Hermes works through hermes' messaging gateway (Slack, Discord, Telegram, …),
+not just the CLI. Use your platform's typed-command prefix (Slack/Matrix use `!`,
+most others `/`):
+
+- **Deterministic commands** — `!paideia status`, `!paideia doctor`,
+  `!paideia init name="…" exam=…`, `!paideia help` — reply with text directly.
+- **Agent-driven commands** — `!paideia ingest|analyze|quiz|grade|weakmap|mock|twin|…` —
+  a `pre_gateway_dispatch` hook rewrites them into a normal agent turn (the CLI's
+  `inject_message` is unavailable in the gateway). A bare phrase works too:
+  `paideia quiz §1.2 3`.
+
+The gateway runs in its configured working directory (`terminal.cwd`), so point that
+at your course folder; each command reads `INTERFACE_LANG` from `.course-meta` itself,
+so en/ko prose is preserved in Slack too.
 
 ## How it maps PAIDEIA → hermes-agent
 
