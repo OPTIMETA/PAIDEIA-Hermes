@@ -14,6 +14,12 @@ It is **model-agnostic**: it runs on whatever provider hermes is pointed at. If
 your `~/.hermes/config.yaml` uses `provider: openai-codex`, PAIDEIA-Hermes is
 driven by Codex; switch with `/model` and nothing about PAIDEIA changes.
 
+> **Status (v0.2.0):** validated end-to-end driving real Codex (gpt-5.5) through
+> hermes across the full lifecycle — `init → ingest → analyze → hwmap → quiz →
+> grade → weakmap → mock → cheatsheet --pdf → twin → derive → chain` — with the
+> phase machine (setup→diag→drill→cram), the `errors/log.md` schema contract,
+> and en/ko i18n all confirmed. Bugs found in live use were patched (see commit log).
+
 ---
 
 ## Install (existing hermes users — one line)

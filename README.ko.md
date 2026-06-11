@@ -13,6 +13,12 @@ PAIDEIA-Hermes는 [OPTIMETA/PAIDEIA](https://github.com/OPTIMETA/PAIDEIA)(Claude
 `~/.hermes/config.yaml`이 `provider: openai-codex`라면 PAIDEIA-Hermes는 Codex로
 구동되며, `/model`로 바꿔도 PAIDEIA 쪽은 아무것도 바뀌지 않습니다.
 
+> **상태 (v0.2.0):** 실제 Codex(gpt-5.5)로 hermes를 구동하여 전체 라이프사이클
+> (`init → ingest → analyze → hwmap → quiz → grade → weakmap → mock →
+> cheatsheet --pdf → twin → derive → chain`)을 종단 검증했습니다. phase 머신
+> (setup→diag→drill→cram), `errors/log.md` 스키마 계약, en/ko i18n 모두 확인.
+> 실사용 중 발견된 버그는 패치 완료(커밋 로그 참고).
+
 ---
 
 ## 설치 (기존 hermes 유저 — 한 줄)

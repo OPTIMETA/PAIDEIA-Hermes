@@ -1,5 +1,5 @@
 name: paideia
-version: 0.1.0
+version: 0.2.0
 description: "Exam-prep from your own course PDFs: ingest to LaTeX, HW-density-weighted drills (twins/blinds/chains/mocks), and strategy-grade hand-written scans. Port of OPTIMETA/PAIDEIA to hermes-agent."
 author: "TaewoooPark (PAIDEIA) · hermes-agent port"
 kind: standalone
