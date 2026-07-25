@@ -399,6 +399,11 @@ standalone copies of the directory skeleton, the meta keys and the error-log
 seed, and every LLM subcommand must have both a command spec and a skill that
 exists on disk.
 
+Four of them check that `errors/log.md` stays valid YAML under fuzzing, which
+needs a YAML parser. Without one they skip and the run reports
+`OK (skipped=4)` — so `pip install pyyaml` if you are touching `pd_errlog.py`,
+or that "OK" is quieter than it looks.
+
 How it maps to hermes' extension surfaces:
 
 | PAIDEIA (Claude Code) | PAIDEIA-Hermes (hermes-agent) |

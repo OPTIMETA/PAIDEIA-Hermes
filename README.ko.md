@@ -341,6 +341,8 @@ PAIDEIA-Hermes/                     # == ~/.hermes/plugins/paideia/
 
 결정형 엔진을 처음부터 끝까지 훑고, 조용히 어긋나기 쉬운 파일 간 약속도 함께 붙잡아 둡니다. `pd_doctor.py`는 단독 실행을 위해 디렉터리 골격·메타 키·오류 로그 시드를 일부러 따로 들고 있고, 모든 LLM 서브커맨드는 명령 스펙과 실제로 존재하는 스킬을 둘 다 갖고 있어야 합니다.
 
+이 중 넷은 퍼징을 돌려 `errors/log.md`가 계속 유효한 YAML인지 봅니다. YAML 파서가 있어야 하는 검사라, 없으면 건너뛰고 `OK (skipped=4)`로 끝납니다. `pd_errlog.py`를 건드리신다면 `pip install pyyaml`을 먼저 해 주세요. 안 그러면 그 `OK`가 보이는 것보다 헐겁습니다.
+
 hermes 확장 표면으로의 매핑은 이렇습니다.
 
 | PAIDEIA (Claude Code) | PAIDEIA-Hermes (hermes-agent) |

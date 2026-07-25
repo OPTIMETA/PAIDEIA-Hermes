@@ -128,8 +128,10 @@ every workspace check. All four now agree it is a broken course and point at
 
 ### Added
 
-- **`tests/`** — 98 stdlib-only tests, no pytest and no install step
-  (`./tests/run.sh`). Includes contract tests that pin `pd_doctor`'s deliberate
+- **`tests/`** — 98 tests on stdlib `unittest`; no pytest, no venv, no install
+  step (`./tests/run.sh`). Four of them check `errors/log.md` against a real YAML
+  parser and skip without one, reporting `OK (skipped=4)`. Includes contract
+  tests that pin `pd_doctor`'s deliberate
   standalone copies of `SKELETON`/`META_KEYS`/the errors seed to their sources,
   assert every LLM subcommand has both a command spec and a skill that exists on
   disk, and — because a spec is an instruction to an agent, so a wrong reference
