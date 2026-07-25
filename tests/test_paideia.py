@@ -353,6 +353,33 @@ class TestAtomicMeta(TempCourse):
         self.assertIn("Real Analysis", meta["COURSE_NAME"])
         self.assertIn("1999-01-01", meta["COURSE_NAME"])   # kept, not lost
 
+    def test_no_line_break_character_can_forge_a_key(self) -> None:
+        """Every char str.splitlines() breaks on, not just `\\n`.
+
+        `\\x85`, `\\u2028` and `\\u2029` are outside the control-char class and are
+        caught only by `\\s` — narrowing that whitespace collapse in a future
+        refactor would quietly reopen the key-forging hole.
+        """
+        breaks = ["\n", "\r", "\x0b", "\x0c", "\x1c", "\x1d", "\x1e",
+                  "\x85", " ", " "]
+        self.assertEqual(
+            len("A\nB".splitlines()), 2, "sanity: splitlines splits on these"
+        )
+        for ch in breaks:
+            self.assertEqual(
+                len(f"A{ch}B".splitlines()), 2, f"{ch!r} is not a line break after all"
+            )
+            pd_meta.write_meta(self.cwd, {
+                "COURSE_NAME": f"A{ch}EXAM_DATE: 1999-01-01",
+                "EXAM_DATE": "2099-08-30",
+            })
+            raw = (self.cwd / ".course-meta").read_text(encoding="utf-8")
+            self.assertEqual(
+                len(raw.strip().splitlines()), len(pd_meta.META_KEYS),
+                f"{ch!r} forged a key line",
+            )
+            self.assertEqual(pd_meta.parse_meta(self.cwd)["EXAM_DATE"], "2099-08-30")
+
     def test_hash_inside_a_value_is_not_a_comment(self) -> None:
         """Only the documented `value  # note` form is a comment.
 
