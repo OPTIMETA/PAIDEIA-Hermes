@@ -7,7 +7,7 @@ All notable changes to PAIDEIA-Hermes. Versions follow the `plugin.yaml`
 
 Correctness and robustness pass over the whole plugin. No workflow changes: the
 same commands produce the same artifacts in the same places. Every fix below is
-covered by `tests/` (95 tests, stdlib only — `./tests/run.sh`).
+covered by `tests/` (98 tests, stdlib only — `./tests/run.sh`).
 
 ### Fixed — data integrity
 
@@ -128,7 +128,7 @@ every workspace check. All four now agree it is a broken course and point at
 
 ### Added
 
-- **`tests/`** — 95 stdlib-only tests, no pytest and no install step
+- **`tests/`** — 98 stdlib-only tests, no pytest and no install step
   (`./tests/run.sh`). Includes contract tests that pin `pd_doctor`'s deliberate
   standalone copies of `SKELETON`/`META_KEYS`/the errors seed to their sources,
   assert every LLM subcommand has both a command spec and a skill that exists on
@@ -152,6 +152,12 @@ every workspace check. All four now agree it is a broken course and point at
   every OCR tier, exactly like poppler, which was already a failure. Required and
   optional deps are now separated, and each optional one says which command it
   serves.
+- **`/paideia doctor` probes every dependency in one interpreter launch**
+  instead of one per dependency. Doctor is interactive — the `init` wizard runs
+  it, and it is the first thing you reach for when something breaks — and it was
+  spending most of its runtime on process startup. A dependency the batch
+  doesn't report on still falls back to its own subprocess, so one pathological
+  module can't hide the rest.
 - **`install.sh --copy` excludes `.git/`, `tests/` and `__pycache__/`** instead of
   copying the whole checkout — tens of MB of history the plugin never reads, plus
   `.pyc` files compiled by whichever interpreter ran last.

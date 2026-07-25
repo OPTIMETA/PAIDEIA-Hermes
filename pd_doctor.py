@@ -127,6 +127,17 @@ def _parse_meta(cwd: Path) -> dict[str, str]:
     return meta
 
 
+_PROBE_SRC = (
+    "import sys\n"
+    "for n in sys.argv[1:]:\n"
+    "    try:\n"
+    "        __import__(n)\n"
+    "        print(n, 1)\n"
+    "    except Exception:\n"
+    "        print(n, 0)\n"
+)
+
+
 def _has_module(name: str) -> bool:
     """Probe the *agent's* python (PATH python3), where the OCR/render scripts run."""
     try:
@@ -141,6 +152,36 @@ def _has_module(name: str) -> bool:
             return importlib.util.find_spec(name) is not None
         except (ImportError, ValueError):
             return False
+
+
+def probe_modules(names: tuple[str, ...]) -> dict[str, bool]:
+    """Probe every dependency in ONE interpreter launch.
+
+    Doctor is interactive — `/paideia init`'s wizard runs it, and it's the first
+    thing you reach for when something breaks. One `python3 -c` per dependency
+    spent ~0.7s of a ~0.9s run on interpreter startup alone.
+
+    A real `__import__` rather than `find_spec`, because a package can have a
+    findable spec and still fail to import. Any name the batch doesn't report on
+    (it died partway, or the launch failed outright) falls back to its own
+    subprocess, so one pathological module can't hide the rest.
+    """
+    found: dict[str, bool] = {}
+    try:
+        r = subprocess.run(
+            [AGENT_PY, "-c", _PROBE_SRC, *names],
+            capture_output=True, text=True, timeout=60,
+        )
+        for line in r.stdout.splitlines():
+            parts = line.split()
+            if len(parts) == 2 and parts[0] in names:
+                found[parts[0]] = parts[1] == "1"
+    except Exception:
+        pass
+    for n in names:
+        if n not in found:
+            found[n] = _has_module(n)
+    return found
 
 
 def _ollama_has_model(model: str) -> bool | None:
@@ -172,14 +213,13 @@ def run(cwd: Path, fix: bool = False) -> tuple[int, str]:
 
     # --- Python deps (probed in the agent's terminal python, not hermes' venv) ---
     r.add(OK, "python (agent terminal)", AGENT_PY)
+    present = probe_modules(tuple(REQUIRED_PY_DEPS) + tuple(OPTIONAL_PY_DEPS))
     for dep, pkg in REQUIRED_PY_DEPS.items():
-        present = _has_module(dep)
-        r.add(OK if present else FAIL, f"py:{dep}",
-              "" if present else f"required by every OCR tier — pip install {pkg}")
+        r.add(OK if present[dep] else FAIL, f"py:{dep}",
+              "" if present[dep] else f"required by every OCR tier — pip install {pkg}")
     for dep, (pkg, why) in OPTIONAL_PY_DEPS.items():
-        present = _has_module(dep)
-        r.add(OK if present else WARN, f"py:{dep}",
-              "" if present else f"{why} — pip install {pkg}")
+        r.add(OK if present[dep] else WARN, f"py:{dep}",
+              "" if present[dep] else f"{why} — pip install {pkg}")
 
     # --- system binaries ---
     pdftoppm = shutil.which("pdftoppm")

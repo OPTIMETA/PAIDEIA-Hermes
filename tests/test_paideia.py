@@ -867,6 +867,30 @@ class TestDoctorContracts(unittest.TestCase):
             "an LLM subcommand has no spec in the payload list",
         )
 
+    def test_probe_modules_agrees_with_the_single_probe(self) -> None:
+        """The batched probe must not change what doctor reports, only its cost."""
+        names = tuple(pd_doctor.REQUIRED_PY_DEPS) + tuple(pd_doctor.OPTIONAL_PY_DEPS)
+        batched = pd_doctor.probe_modules(names)
+        self.assertEqual(set(batched), set(names), "a dependency went unreported")
+        for n in names:
+            self.assertEqual(batched[n], pd_doctor._has_module(n), f"disagreement on {n}")
+
+    def test_probe_modules_reports_a_missing_package(self) -> None:
+        got = pd_doctor.probe_modules(("json", "definitely_not_a_real_module_xyz"))
+        self.assertTrue(got["json"])
+        self.assertFalse(got["definitely_not_a_real_module_xyz"])
+
+    def test_probe_modules_falls_back_when_the_batch_fails(self) -> None:
+        """One pathological module must not hide the rest."""
+        real = pd_doctor.AGENT_PY
+        pd_doctor.AGENT_PY = "/nonexistent/python-that-cannot-launch"
+        try:
+            got = pd_doctor.probe_modules(("json", "definitely_not_a_real_module_xyz"))
+        finally:
+            pd_doctor.AGENT_PY = real
+        self.assertTrue(got["json"], "fallback did not run")
+        self.assertFalse(got["definitely_not_a_real_module_xyz"])
+
     def test_required_deps_are_disjoint_from_optional(self) -> None:
         self.assertFalse(set(pd_doctor.REQUIRED_PY_DEPS) & set(pd_doctor.OPTIONAL_PY_DEPS))
 
