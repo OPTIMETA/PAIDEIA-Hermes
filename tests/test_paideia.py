@@ -25,6 +25,7 @@ import os
 import random
 import shutil
 import string
+import subprocess
 import sys
 import tempfile
 import types
@@ -603,6 +604,18 @@ class TestPrompts(unittest.TestCase):
             msg = pd_prompts.build_inject(sub, "", Path("/tmp/course"), "en")
             self.assertNotIn("${PAIDEIA_PLUGIN_ROOT}", msg, f"{sub} leaks the placeholder")
 
+    def test_load_spec_refuses_to_traverse(self) -> None:
+        """Callers pre-validate, but the string starts life as chat input."""
+        for sub in ("../pd_meta", "../../etc/passwd", "..", ".hidden",
+                    "skills/paideia-pdf/SKILL", "", "a\\b"):
+            self.assertIsNone(pd_prompts.load_spec(sub), f"traversed with {sub!r}")
+
+    def test_inject_header_names_both_marker_vocabularies(self) -> None:
+        """analyze.md defines two; downstream tools regex on both."""
+        msg = pd_prompts.build_inject("analyze", "", Path("/tmp/c"), "ko")
+        for marker in ("🔥🔥", "⚪", "✅✅", "🔴🔴"):
+            self.assertIn(marker, msg, f"{marker} missing from the inject header")
+
     def test_gateway_path_tolerates_unknown_cwd(self) -> None:
         msg = pd_prompts.build_inject("quiz", "all 5", None, None)
         self.assertIn("INTERFACE_LANG", msg)
@@ -661,6 +674,26 @@ class TestSpecReferences(unittest.TestCase):
         ]
         self.assertIn("commands/ingest.md", referenced)
         self.assertIn("commands/grade.md", referenced)
+
+    def test_readmes_document_every_command_and_count_them_right(self) -> None:
+        """Both READMEs table every dispatchable command, and the heading agrees.
+
+        `help` is excluded: it is the listing itself, not an entry in it.
+        """
+        import re
+
+        expected = (pd_commands.LLM_SUBS | pd_commands.DETERMINISTIC) - {"help"}
+        for name, heading in (("README.md", r"##\s*Commands\s*\((\d+) total\)"),
+                              ("README.ko.md", r"##\s*명령어\s*\(총\s*(\d+)개\)")):
+            text = (REPO / name).read_text(encoding="utf-8")
+            m = re.search(heading, text)
+            self.assertIsNotNone(m, f"{name}: no command-count heading")
+            table = re.findall(r"^\|\s*`/paideia ([a-z-]+)", text, re.MULTILINE)
+            self.assertEqual(set(table), expected, f"{name}: table misses a command")
+            self.assertEqual(
+                int(m.group(1)), len(expected),
+                f"{name}: heading says {m.group(1)}, {len(expected)} commands exist",
+            )
 
     def test_hwmap_has_no_blind_spot_mode(self) -> None:
         """`blind` is a legacy alias for `hot`, not a blind-spot listing.
@@ -1030,6 +1063,36 @@ class TestRenderEndToEnd(unittest.TestCase):
 
         self.assertEqual(out.read_bytes().decode("utf-8").count(korean), 1)
         self.assertIn(korean, out.read_text(encoding="utf-8"))
+
+    def test_unreadable_pdf_gets_an_actionable_error_not_a_traceback(self) -> None:
+        """An agent reads this output; a pdf2image traceback tells it nothing.
+
+        Both specs promise the caller can relay a specific reason to the user
+        (password-protected / truncated / not a PDF), so the scripts have to
+        actually say which.
+        """
+        bad = self.tmp / "corrupt.pdf"
+        bad.write_text("this is definitely not a pdf", encoding="utf-8")
+
+        for argv, name in (
+            ([str(REPO / "pd_render.py"), str(bad), str(self.tmp / "o")], "pd_render"),
+            ([str(REPO / "pd_vision_ocr.py"), "--engine=tesseract",
+              str(bad), str(self.tmp / "o.md")], "pd_vision_ocr"),
+        ):
+            r = subprocess.run([sys.executable, *argv], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 1, f"{name}: expected exit 1\n{r.stderr}")
+            self.assertNotIn("Traceback", r.stderr, f"{name} leaked a traceback")
+            self.assertIn("password-protected", r.stderr, f"{name}: no remedy offered")
+            self.assertIn("pdfinfo", r.stderr, f"{name}: no diagnostic offered")
+
+    def test_missing_pdf_is_distinguished_from_an_unreadable_one(self) -> None:
+        r = subprocess.run(
+            [sys.executable, str(REPO / "pd_render.py"),
+             str(self.tmp / "nope.pdf"), str(self.tmp / "o")],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(r.returncode, 2, "a missing file is a usage error, not a bad PDF")
+        self.assertIn("no such PDF", r.stderr)
 
     def test_ocr_page_order_matches_pd_render(self) -> None:
         """The two streaming iterators are separate copies — pin them together."""

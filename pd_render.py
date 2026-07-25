@@ -159,12 +159,32 @@ def _parse_args(argv: list[str]) -> tuple[Path, Path, int, int]:
     return Path(positional[0]), Path(positional[1]), dpi, max_px
 
 
+UNREADABLE_HINT = (
+    "poppler could not read this PDF. It is usually one of:\n"
+    "  - password-protected  → qpdf --password=… --decrypt in.pdf out.pdf, then retry\n"
+    "  - truncated/corrupt   → check `pdfinfo <pdf>`; re-download or re-export it\n"
+    "  - not actually a PDF  → check `file <pdf>`"
+)
+
 if __name__ == "__main__":
     pdf, out_dir, dpi, max_px = _parse_args(sys.argv)
     if not pdf.is_file():
         print(f"error: no such PDF: {pdf}", file=sys.stderr)
         raise SystemExit(2)
-    pages = render_pdf_pages(pdf, out_dir, dpi=dpi, max_px=max_px)
+    try:
+        pages = render_pdf_pages(pdf, out_dir, dpi=dpi, max_px=max_px)
+    except SystemExit:
+        raise                       # missing dependency: _missing() already explains
+    except Exception as exc:
+        # An agent reads this. A raw pdf2image traceback tells it nothing it can
+        # act on, and the caller has to report a specific reason to the user.
+        print(f"error: cannot render {pdf}: {type(exc).__name__}", file=sys.stderr)
+        print(UNREADABLE_HINT, file=sys.stderr)
+        raise SystemExit(1) from None
+    if not pages:
+        print(f"error: {pdf} rendered 0 pages", file=sys.stderr)
+        print(UNREADABLE_HINT, file=sys.stderr)
+        raise SystemExit(1)
     for p in pages:
         print(p)
     print(

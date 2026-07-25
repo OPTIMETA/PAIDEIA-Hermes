@@ -146,7 +146,7 @@ After ingest completes, print:
 End with (in $INTERFACE_LANG):
 "Next: run `/paideia analyze` to generate patterns.md, coverage.md, summary.md."
 
-If any file failed (encryption, corrupted PDF, agent timeout), list at the end with the specific failure reason and suggested workaround:
+If any file failed (encryption, corrupted PDF, agent timeout), list it at the end with the specific failure reason and suggested workaround:
+- `pd_render.py` exits 1 with `cannot render …` → it prints the three likely causes (password-protected, truncated, not a PDF) and the fix for each. Relay the one that applies rather than the raw error.
 - Password-protected PDF → `qpdf --password=... --decrypt in.pdf out.pdf` first
 - Agent crashed mid-run → `/paideia ingest --force` to retry just that file
-- `pd_render.py` reports 0 pages → poppler can't read the file; confirm `pdfinfo <pdf>` works

@@ -360,9 +360,28 @@ def _parse_args(argv: list[str]) -> tuple[str, Path, Path, str | None, str | Non
     return engine, Path(positional[0]), Path(positional[1]), course_name, lang
 
 
+UNREADABLE_HINT = (
+    "poppler could not read this PDF. It is usually one of:\n"
+    "  - password-protected  → qpdf --password=… --decrypt in.pdf out.pdf, then retry\n"
+    "  - truncated/corrupt   → check `pdfinfo <pdf>`; re-download or re-export it\n"
+    "  - not actually a PDF  → check `file <pdf>`"
+)
+
 if __name__ == "__main__":
     engine, pdf, out, course, lang = _parse_args(sys.argv)
     if not pdf.is_file():
         print(f"error: no such PDF: {pdf}", file=sys.stderr)
         sys.exit(2)
-    ocr_pdf(pdf, out, engine=engine, course_name=course, lang=lang)
+    try:
+        ocr_pdf(pdf, out, engine=engine, course_name=course, lang=lang)
+    except ImportError as exc:
+        # The tesseract tier imports pytesseract lazily; say which package.
+        print(f"error: missing dependency: {exc}", file=sys.stderr)
+        print("  pip install pdf2image pillow pytesseract", file=sys.stderr)
+        sys.exit(2)
+    except Exception as exc:
+        # An agent reads this; a raw pdf2image traceback is not actionable.
+        print(f"error: cannot transcribe {pdf}: {type(exc).__name__}: {exc}",
+              file=sys.stderr)
+        print(UNREADABLE_HINT, file=sys.stderr)
+        sys.exit(1)

@@ -240,7 +240,7 @@ Obsidian이 읽는 쪽 짝이라면, **[Alt](https://www.altalt.io/ko/)**는 강
 
 ---
 
-## 명령어 (총 16개)
+## 명령어 (총 17개)
 
 `/paideia <서브커맨드> [인자]` — 목록은 `/paideia help`로 바로 봅니다.
 

@@ -163,7 +163,11 @@ def _do_init(rest: str, cwd: Path, ctx) -> str:
         report = pd_workspace.scaffold_course(cwd, meta)
         return _init_summary(report, meta, lang)
     # Not enough args → let the agent run the interactive setup wizard.
-    lang = kv.get("lang", pd_meta.read_lang(cwd))
+    # Validate here too, so both init paths agree on what a language is rather
+    # than passing `lang=fr` into the wizard's prompt header.
+    lang = kv.get("lang", "").lower() or pd_meta.read_lang(cwd)
+    if lang not in pd_meta.VALID_LANG:
+        lang = "en"
     msg = pd_prompts.build_inject("init-course", rest, cwd, lang)
     if ctx is not None and ctx.inject_message(msg, role="user"):
         return _ack("init", cwd, lang)

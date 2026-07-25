@@ -37,6 +37,11 @@ SKILL_FOR = {
 
 
 def load_spec(sub: str) -> str | None:
+    # Callers pre-validate against LLM_SUBS, but this reads a path built from a
+    # string that (via the gateway hook) starts life as chat input — so don't
+    # leave the traversal open for the next caller to forget.
+    if not sub or "/" in sub or "\\" in sub or sub.startswith("."):
+        return None
     p = COMMANDS_DIR / f"{sub}.md"
     if p.exists():
         try:
@@ -81,7 +86,9 @@ def build_inject(sub: str, args: str, cwd: Path | None, lang: str | None) -> str
         "working directory and write all prose to the user in that language; "
     ) + (
         "keep file paths, slash-command names, pattern IDs (P1, P2…), YAML keys, "
-        "LaTeX, and tier markers (🔥🔥/🔥/🟡/⚪) verbatim in any language."
+        "LaTeX, and both marker vocabularies — exam tier (🔥🔥/🔥/🟡/⚪) and "
+        "coverage strength (✅✅/✅/🟡/🔴/🔴🔴) — verbatim in any language, "
+        "along with any section anchors the command spec calls out."
     )
     return (
         f"[PAIDEIA · /paideia {sub}]\n"

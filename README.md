@@ -287,7 +287,7 @@ Obsidian is the companion at the reading end. **[Alt](https://www.altalt.io/ko/)
 
 ---
 
-## Commands (16 total)
+## Commands (17 total)
 
 `/paideia <subcommand> [args]` — run `/paideia help` for the list inline.
 
