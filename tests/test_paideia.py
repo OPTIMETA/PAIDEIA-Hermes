@@ -616,6 +616,24 @@ class TestPrompts(unittest.TestCase):
         for marker in ("🔥🔥", "⚪", "✅✅", "🔴🔴"):
             self.assertIn(marker, msg, f"{marker} missing from the inject header")
 
+    def test_every_plugin_rooted_path_in_a_rendered_turn_exists(self) -> None:
+        """The rendered turn is what the agent actually acts on.
+
+        Covers more than the spec-file scan: the skill bullets build_inject adds
+        itself, and any path a spec composes from the resolved plugin root. If
+        one is missing the agent burns a turn on a read that cannot succeed.
+        """
+        import re
+
+        root = str(pd_prompts.PLUGIN_ROOT)
+        broken: list[str] = []
+        for sub in sorted(pd_commands.LLM_SUBS | {"init-course"}):
+            msg = pd_prompts.build_inject(sub, "", Path("/course"), "en")
+            for path in sorted(set(re.findall(re.escape(root) + r"[\w/.-]*", msg))):
+                if not Path(path).exists():
+                    broken.append(f"{sub}: {path}")
+        self.assertEqual(broken, [], "rendered turn points at files that don't exist")
+
     def test_gateway_path_tolerates_unknown_cwd(self) -> None:
         msg = pd_prompts.build_inject("quiz", "all 5", None, None)
         self.assertIn("INTERFACE_LANG", msg)
