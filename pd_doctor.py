@@ -34,7 +34,33 @@ OK, WARN, FAIL = "ok", "warn", "fail"
 _SYMBOL = {OK: "✓", WARN: "•", FAIL: "✗"}
 _RANK = {OK: 0, WARN: 1, FAIL: 2}
 
-PY_DEPS = ("pypdf", "pdfplumber", "pytesseract", "pdf2image", "PIL", "reportlab")
+# Rendering a PDF to page images is the first step of *every* OCR tier, so these
+# rank alongside poppler: without them nothing ingests and nothing grades.
+REQUIRED_PY_DEPS = {
+    "pdf2image": "pdf2image",
+    "PIL": "pillow",
+}
+# Everything else is tier- or command-specific; missing them degrades one path.
+OPTIONAL_PY_DEPS = {
+    "pytesseract": ("pytesseract", "tesseract tier + the ollama tier's fallback"),
+    "reportlab": ("reportlab", "/paideia cheatsheet --pdf"),
+    "pypdf": ("pypdf", "ad-hoc merge/split in the pdf skill"),
+    "pdfplumber": ("pdfplumber", "ad-hoc text dumps in the pdf skill"),
+}
+
+# The plugin's own payload. A half-finished `git clone`, a partial copy, or a
+# stale symlink otherwise passes every other check and only fails later, in the
+# middle of a command, as "no command spec file found".
+PAYLOAD_SCRIPTS = ("pd_render.py", "pd_vision_ocr.py", "pd_doctor.py")
+PAYLOAD_COMMANDS = (
+    "alt", "analyze", "blind", "chain", "cheatsheet", "derive", "grade", "hwmap",
+    "ingest", "init-course", "mock", "pattern", "quiz", "twin", "weakmap",
+)
+PAYLOAD_SKILLS = (
+    "paideia-alt-import", "paideia-answer-processing", "paideia-course-builder",
+    "paideia-exam-drill", "paideia-pdf", "paideia-vision-ocr",
+)
+
 SKELETON = (
     "materials/lectures", "materials/textbook", "materials/homework", "materials/solutions",
     "converted/lectures", "converted/textbook", "converted/homework", "converted/solutions",
@@ -136,12 +162,14 @@ def run(cwd: Path, fix: bool = False) -> tuple[int, str]:
 
     # --- Python deps (probed in the agent's terminal python, not hermes' venv) ---
     r.add(OK, "python (agent terminal)", AGENT_PY)
-    for dep in PY_DEPS:
+    for dep, pkg in REQUIRED_PY_DEPS.items():
         present = _has_module(dep)
-        # reportlab only needed for /paideia cheatsheet --pdf; pytesseract only
-        # for tesseract/ollama OCR tiers → downgrade those to WARN.
-        sev = WARN
-        r.add(OK if present else sev, f"py:{dep}", "" if present else "pip install " + ("pillow" if dep == "PIL" else dep))
+        r.add(OK if present else FAIL, f"py:{dep}",
+              "" if present else f"required by every OCR tier — pip install {pkg}")
+    for dep, (pkg, why) in OPTIONAL_PY_DEPS.items():
+        present = _has_module(dep)
+        r.add(OK if present else WARN, f"py:{dep}",
+              "" if present else f"{why} — pip install {pkg}")
 
     # --- system binaries ---
     pdftoppm = shutil.which("pdftoppm")
@@ -161,6 +189,23 @@ def run(cwd: Path, fix: bool = False) -> tuple[int, str]:
             r.add(OK, "ollama:qwen3-vl:8b")
         else:
             r.add(FAIL, "ollama:qwen3-vl:8b", "ollama pull qwen3-vl:8b")
+
+    # --- plugin payload (scripts + command specs + skills all shipped?) ---
+    here = Path(__file__).resolve().parent
+    missing_payload = [s for s in PAYLOAD_SCRIPTS if not (here / s).is_file()]
+    missing_payload += [
+        f"commands/{c}.md" for c in PAYLOAD_COMMANDS
+        if not (here / "commands" / f"{c}.md").is_file()
+    ]
+    missing_payload += [
+        f"skills/{s}/SKILL.md" for s in PAYLOAD_SKILLS
+        if not (here / "skills" / s / "SKILL.md").is_file()
+    ]
+    n_payload = len(PAYLOAD_SCRIPTS) + len(PAYLOAD_COMMANDS) + len(PAYLOAD_SKILLS)
+    r.add(OK if not missing_payload else FAIL, "plugin:payload",
+          f"{n_payload} files" if not missing_payload
+          else f"{len(missing_payload)} missing: " + ", ".join(missing_payload[:3])
+               + ("…" if len(missing_payload) > 3 else ""))
 
     # --- hermes wiring ---
     home = _hermes_home()
@@ -183,7 +228,10 @@ def run(cwd: Path, fix: bool = False) -> tuple[int, str]:
         missing = [d for d in SKELETON if not (cwd / d).is_dir()]
         if missing and fix:
             for d in missing:
-                (cwd / d).mkdir(parents=True, exist_ok=True)
+                try:
+                    (cwd / d).mkdir(parents=True, exist_ok=True)
+                except OSError:
+                    pass  # re-listed as missing below; --fix never raises
             missing = [d for d in SKELETON if not (cwd / d).is_dir()]
         r.add(OK if not missing else (WARN if not fix else FAIL), "workspace:dirs",
               "" if not missing else f"{len(missing)} missing" + ("" if fix else " — rerun with --fix"))
@@ -198,8 +246,11 @@ def run(cwd: Path, fix: bool = False) -> tuple[int, str]:
 
         log = cwd / "errors" / "log.md"
         if not log.exists() and fix:
-            log.parent.mkdir(parents=True, exist_ok=True)
-            log.write_text(_ERRORS_LOG_SEED, encoding="utf-8")
+            try:
+                log.parent.mkdir(parents=True, exist_ok=True)
+                log.write_text(_ERRORS_LOG_SEED, encoding="utf-8")
+            except OSError:
+                pass  # reported below as still-missing; --fix never raises
         r.add(OK if log.exists() else (WARN if not fix else FAIL), "workspace:errors/log.md",
               "" if log.exists() else "missing — rerun with --fix")
 
@@ -208,8 +259,7 @@ def run(cwd: Path, fix: bool = False) -> tuple[int, str]:
 
     # --- fix: chmod +x bundled scripts ---
     if fix:
-        here = Path(__file__).resolve().parent
-        for script in ("pd_doctor.py", "pd_vision_ocr.py", "pd_render.py"):
+        for script in PAYLOAD_SCRIPTS:
             sp = here / script
             if sp.exists():
                 try:

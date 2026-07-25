@@ -370,6 +370,7 @@ PAIDEIA-Hermes/                     # == ~/.hermes/plugins/paideia/
 ├── pd_status.py  pd_banner.py  pd_doctor.py                    # status / banner / diagnostics
 ├── pd_render.py  pd_vision_ocr.py                              # PDF→PNG + offline OCR tiers (run standalone)
 ├── pd_prompts.py  pd_commands.py                               # inject-prompt builder + /paideia dispatcher
+├── tests/                          # stdlib-only regression suite — ./tests/run.sh
 ├── commands/                       # 15 agent-facing command specs (.md)
 ├── skills/
 │   ├── paideia-pdf/{SKILL.md,VISION.md}        # vision ingest pipeline
@@ -378,8 +379,20 @@ PAIDEIA-Hermes/                     # == ~/.hermes/plugins/paideia/
 │   ├── paideia-exam-drill/{SKILL.md,twin-recipe.md}
 │   ├── paideia-answer-processing/SKILL.md      # strategy-grade OCR output
 │   └── paideia-alt-import/SKILL.md
-├── install.sh  LICENSE  README.md  README.ko.md
+├── install.sh  LICENSE  CHANGELOG.md  README.md  README.ko.md
 ```
+
+Run the tests before sending a patch — no install step, no pytest, no venv:
+
+```bash
+./tests/run.sh          # 65 tests, ~12s
+```
+
+They cover the deterministic engine end to end and pin the cross-file contracts
+that would otherwise drift silently: `pd_doctor.py` deliberately keeps its own
+standalone copies of the directory skeleton, the meta keys and the error-log
+seed, and every LLM subcommand must have both a command spec and a skill that
+exists on disk.
 
 How it maps to hermes' extension surfaces:
 

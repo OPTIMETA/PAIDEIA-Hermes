@@ -17,7 +17,7 @@ description: Use whenever a hand-written or scanned answer PDF needs transcripti
 
 | Engine | Default? | How it runs | When to pick it |
 |---|---|---|---|
-| `claude` | **Yes** | `pdftoppm` → Claude reads each PNG via the read_file tool → synthesizes markdown inline. No external model. No subprocess. | The out-of-the-box path. Nothing to install. Highest fidelity on messy handwriting because the model's vision handles mixed-script (English/Korean) prose with LaTeX well. |
+| `claude` | **Yes** | `pd_render.py` → the agent reads each PNG via the read_file tool → synthesizes markdown inline. No external model, no VLM subprocess. | The out-of-the-box path. Nothing to install. Highest fidelity on messy handwriting because the model's vision handles mixed-script (English/Korean) prose with LaTeX well. |
 | `ollama` | opt-in | `python3 ${PAIDEIA_PLUGIN_ROOT}/pd_vision_ocr.py --engine=ollama <pdf> <md>` — local Qwen3-VL 8B, with an automatic tesseract fall-back if ollama is unreachable. Reads `INTERFACE_LANG` from `.course-meta` to set the prose-language rule. | You want the PDF to never leave the machine *and* you don't want to burn Claude tokens on OCR. Requires one-time `ollama pull qwen3-vl:8b` (~6 GB). |
 | `tesseract` | opt-in | `python3 ${PAIDEIA_PLUGIN_ROOT}/pd_vision_ocr.py --engine=tesseract <pdf> <md>` — pytesseract (`eng` for en, `eng+kor` for ko, derived from `.course-meta`). | Zero cloud + no GPU/VRAM budget. Lowest fidelity on handwriting; fine for typed scans. |
 
@@ -29,20 +29,20 @@ All three emit `answers/converted/<stem>.md` with a `<!-- SOURCE: ... -->` / `<!
 
 ```
 answers/<stem>.pdf
-  ↓ pdftoppm -r 200 -png <pdf> <tmpdir>/page   # rasterize to PNG per page
-  ↓ Claude reads <tmpdir>/page-1.png, page-2.png, ... via the read_file tool
-  ↓ Claude synthesizes clean MD following the prompt contract below
+  ↓ pd_render.py --dpi=200 <pdf> <tmpdir>    # rasterize + cap at 1800px, streaming
+  ↓ the agent reads <tmpdir>/p01.png, p02.png, ... via the read_file tool
+  ↓ the agent synthesizes clean MD following the prompt contract below
 answers/converted/<stem>.md
    └── header:  <!-- SOURCE: <stem>.pdf, claude-vision (native), N pages -->
 ```
 
-The grade command handles the orchestration — rasterize, Read each page, synthesize into one markdown file in a single pass. No standalone driver script is required.
+The grade command handles the orchestration — render, Read each page **in sorted filename order**, synthesize into one markdown file in a single pass. No VLM driver script is involved; `pd_render.py` only produces the page images.
 
 ## Tier 1 — Ollama Qwen3-VL 8B (opt-in)
 
 ```
 answers/<stem>.pdf
-  ↓ pdf2image @ 300dpi
+  ↓ pdf2image @ 300dpi, one page at a time (a 40-page scan decoded whole is ~1 GB)
   ↓ resize to ≤1200px wide (VLMs dislike huge inputs)
   ↓ base64 JPEG per page
   ↓ [Tier 1a] ollama qwen3-vl:8b
@@ -90,9 +90,10 @@ If you edit the prompt, keep these six clauses — they're what separates useful
 ## Dependencies
 
 **All engines need:**
-- `poppler` binaries (`pdftoppm`, used by pdf2image). `brew install poppler` / `apt-get install poppler-utils`.
+- `poppler` binaries (`pdftoppm`, `pdfinfo` — used by pdf2image). `brew install poppler` / `apt-get install poppler-utils`.
+- Python: `pdf2image`, `pillow` — every tier starts by rasterizing the PDF.
 
-**Tier 0 (claude):** nothing beyond hermes itself.
+**Tier 0 (claude):** nothing beyond the shared requirements above — no model to install, no VLM subprocess.
 
 **Tier 1 (ollama) extras:**
 - `ollama` CLI + model `qwen3-vl:8b` (~6.1 GB). `brew install ollama && ollama serve & && ollama pull qwen3-vl:8b`.

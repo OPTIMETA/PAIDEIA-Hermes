@@ -62,8 +62,37 @@ def top_pattern(cwd: Path) -> str | None:
     return max(counts, key=counts.get) if counts else None
 
 
-def _yaml_escape(s: str) -> str:
-    return str(s).replace('"', '\\"').replace("\n", " ").strip()
+_CTRL_RX = re.compile(r"[\x00-\x1f\x7f]+")
+# Chars that flip a plain YAML scalar into some other node type when leading.
+_PLAIN_LEAD = "\"'&*!|>%@`-?,[]{}#"
+
+
+def _yaml_plain(s: str) -> str:
+    """Sanitize a value emitted as a *plain* (unquoted) YAML scalar.
+
+    ``problem_id``/``pattern``/``error_type``/``source`` must stay unquoted:
+    :data:`PATTERN_RX` matches ``pattern: P3`` and would miss ``pattern: "P3"``,
+    which silently drops the entry from every weakness surface. So sanitize the
+    few constructs that would end the scalar early rather than quote it.
+    """
+    s = _CTRL_RX.sub(" ", str(s))
+    s = re.sub(r"\s+", " ", s).strip()
+    s = re.sub(r":(?=\s|$)", "-", s)      # `: ` (and a trailing `:`) ends the scalar
+    s = re.sub(r"(?<=\s)#", "", s)        # ` #` starts a trailing comment
+    return s.lstrip(_PLAIN_LEAD).strip() or "unknown"
+
+
+def _yaml_quoted(s: str) -> str:
+    """Escape *s* for a YAML double-quoted scalar.
+
+    Backslash MUST be escaped before the quote. Summaries describe math, so they
+    carry LaTeX (``\\int``, ``\\frac``) and YAML rejects unknown escapes like
+    ``\\i`` outright — one unescaped summary makes the *whole* ``errors/log.md``
+    unparseable, not just its own entry.
+    """
+    s = _CTRL_RX.sub(" ", str(s))
+    s = s.replace("\\", "\\\\").replace('"', '\\"')
+    return re.sub(r"\s+", " ", s).strip()
 
 
 def append_error(
@@ -79,19 +108,18 @@ def append_error(
     """Append one canonical YAML entry to ``errors/log.md`` (creating it if needed)."""
     p = errors_path(cwd)
     if not p.exists():
-        from . import pd_workspace
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(pd_workspace.ERRORS_LOG_SEED, encoding="utf-8")
+        from . import pd_meta, pd_workspace
+        pd_meta.atomic_write_text(p, pd_workspace.ERRORS_LOG_SEED)
     iso = date or datetime.datetime.now(datetime.timezone.utc).replace(
         microsecond=0
     ).isoformat().replace("+00:00", "Z")
     block = (
-        f"- problem_id: {_yaml_escape(problem_id)}\n"
-        f"  pattern: {_yaml_escape(pattern)}\n"
-        f"  error_type: {_yaml_escape(error_type)}\n"
-        f'  summary: "{_yaml_escape(summary)}"\n'
-        f"  source: {_yaml_escape(source)}\n"
-        f"  date: {iso}\n"
+        f"- problem_id: {_yaml_plain(problem_id)}\n"
+        f"  pattern: {_yaml_plain(pattern)}\n"
+        f"  error_type: {_yaml_plain(error_type)}\n"
+        f'  summary: "{_yaml_quoted(summary)}"\n'
+        f"  source: {_yaml_plain(source)}\n"
+        f"  date: {_yaml_plain(iso)}\n"
     )
     with p.open("a", encoding="utf-8") as fh:
         fh.write("\n" + block)

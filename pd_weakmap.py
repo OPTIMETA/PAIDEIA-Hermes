@@ -3,7 +3,6 @@ pattern. Mirrors upstream PAIDEIA's statusline/session-start logic.
 """
 from __future__ import annotations
 
-import glob
 import re
 from pathlib import Path
 
@@ -13,10 +12,19 @@ _VERDICT_RX = re.compile(r"##\s*One-line verdict\s*\n+\s*(.+?)(?:\n|$)")
 
 
 def latest_weakmap(cwd: Path) -> Path | None:
-    matches = sorted(
-        glob.glob(str(Path(cwd) / "weakmap" / "weakmap_*.md")), reverse=True
-    )
-    return Path(matches[0]) if matches else None
+    """Newest ``weakmap/weakmap_<YYYY-MM-DD_HHmm>.md`` by the timestamp in its name.
+
+    Name order, not mtime: the course folder is meant to be committed, and a
+    fresh ``git clone`` stamps every file with the checkout time, which would
+    make mtime ordering arbitrary exactly when the history matters most.
+    Path.glob also keeps a course folder whose name contains glob metacharacters
+    ("Math [2026] Final") from matching nothing.
+    """
+    d = Path(cwd) / "weakmap"
+    if not d.is_dir():
+        return None
+    matches = sorted(d.glob("weakmap_*.md"), key=lambda p: p.name, reverse=True)
+    return matches[0] if matches else None
 
 
 def latest_verdict(cwd: Path) -> str | None:

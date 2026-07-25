@@ -1,0 +1,110 @@
+# Changelog
+
+All notable changes to PAIDEIA-Hermes. Versions follow the `plugin.yaml`
+`version:` field.
+
+## 0.4.0 — 2026-07-25
+
+Correctness and robustness pass over the whole plugin. No workflow changes: the
+same commands produce the same artifacts in the same places. Every fix below is
+covered by `tests/` (65 tests, stdlib only — `./tests/run.sh`).
+
+### Fixed — data integrity
+
+- **`errors/log.md` no longer breaks on LaTeX.** A summary containing `\int` or
+  `\frac` went into the double-quoted YAML scalar unescaped, so YAML read `\i`
+  as an unknown escape and rejected **the entire file** — silently emptying every
+  weakness surface (weakmap, status, banner, `/paideia quiz weakmap`) built on
+  it. Backslashes and quotes are now escaped; `problem_id`/`pattern`/
+  `error_type`/`source` stay unquoted plain scalars so `PATTERN_RX` keeps
+  matching them, with colons and `#` sanitized instead.
+- **Korean OCR output is written as UTF-8.** `pd_vision_ocr.py` wrote its
+  transcription with no explicit encoding, falling back to the locale encoding —
+  mojibake or a hard failure under a C/POSIX locale.
+- **Course folders whose names contain glob metacharacters work.** A folder like
+  `Math [2026] Final` made `glob.glob()` match nothing, so quizzes and weakmap
+  reports became invisible: the phase silently degraded from `drill` to `diag`
+  and the banner lost its verdict. Both call sites now use `Path.glob`.
+- **`answers/_archive/` is actually git-ignored.** `commands/grade.md` promised
+  graded scans stayed out of version control; the generated `.gitignore` never
+  listed the directory. Existing course folders get the pattern appended on the
+  next scaffold, leaving hand-written rules untouched.
+
+### Fixed — atomicity
+
+- **`.course-meta` is written atomically** (temp file + `os.replace`). A write
+  interrupted mid-flight left a truncated file behind — and since that file's
+  *existence* is what marks a folder as a course, the result was a workspace
+  that looked initialized while every subcommand refused to run. `errors/log.md`,
+  `.gitignore` and `PAIDEIA.md` seeding use the same path.
+
+### Fixed — stability
+
+- **PDF rendering streams one page at a time.** Decoding a whole PDF up front
+  peaked at **3031 MB** for a 120-page chapter at `dpi=160`; it now peaks at
+  **47 MB** (measured, same file). The old ingest spec listed "split the PDF
+  first" as the workaround for the resulting OOM — that advice is gone because
+  the cause is.
+- **Page numbering is padded to the page count.** Fixed 2-digit padding sorted
+  `p100.png` between `p10.png` and `p11.png`, and agents read pages in sorted
+  order — a 100+ page chapter (ordinary for a textbook) was transcribed in
+  scrambled sequence with nothing to signal it. Now `p001.png … p120.png`.
+
+### Fixed — contradictions between specs and code
+
+- **`/paideia grade` no longer risks launching the wrong OCR tier.** The
+  `answer-processing` skill hard-coded the ollama invocation while
+  `commands/grade.md` correctly dispatched on `OCR_ENGINE` (default `claude`).
+  Both files are loaded for the same command, so a default-configured user could
+  end up stalled on a 6 GB model they never pulled. The skill now dispatches.
+- **"Latest weakmap" means one thing.** The specs said "most recent mtime", the
+  code sorted by filename timestamp. They disagree after any `git clone`, which
+  stamps every file with the checkout time — and the course folder is meant to be
+  committed. The filename-order rule is now stated in both specs.
+- **The acknowledgement line names no provider.** It read "handed to the agent
+  (codex)" while both READMEs promise switching providers changes nothing.
+- **Both init paths produce identical workspaces.** The interactive wizard wrote
+  `.course-meta` by hand and called `doctor --fix`, which creates directories but
+  no `.gitignore` and no `PAIDEIA.md`. It now routes through `/paideia init`, the
+  single scaffolding implementation.
+
+### Added
+
+- **`tests/`** — 65 stdlib-only tests, no pytest and no install step
+  (`./tests/run.sh`). Includes contract tests that pin `pd_doctor`'s deliberate
+  standalone copies of `SKELETON`/`META_KEYS`/the errors seed to their sources,
+  and assert every LLM subcommand has both a command spec and a skill that
+  exists on disk.
+- **`/paideia doctor` checks the plugin's own payload** — 24 scripts, command
+  specs and skill files. A truncated clone or stale symlink previously passed
+  every check and failed later, mid-command, as "no command spec file found".
+- **`/paideia init` rejects a malformed `exam=` date** instead of scaffolding a
+  course whose D-N countdown and phase tracking silently never appear.
+- **`pd_render.py` is wired in.** It shipped unreferenced while three spec files
+  inlined their own hand-rolled render+resize snippets; those snippets are the
+  ones that carried the OOM and page-ordering bugs. `/paideia ingest` and
+  `/paideia grade`'s claude tier now both call it.
+
+### Changed
+
+- **`/paideia doctor` grades dependencies by what actually breaks.** Every Python
+  dep was reported as a warning, including `pdf2image` and `pillow` — required by
+  every OCR tier, exactly like poppler, which was already a failure. Required and
+  optional deps are now separated, and each optional one says which command it
+  serves.
+- **`install.sh --copy` excludes `.git/`, `tests/` and `__pycache__/`** instead of
+  copying the whole checkout — tens of MB of history the plugin never reads, plus
+  `.pyc` files compiled by whichever interpreter ran last.
+
+## 0.3.0
+
+- Slack/gateway support via the `pre_gateway_dispatch` hook.
+
+## 0.2.0
+
+- Validated on codex; doctor probes the agent's `python3` rather than hermes'
+  venv interpreter.
+
+## 0.1.0
+
+- Initial port of OPTIMETA/PAIDEIA to a hermes-agent plugin.

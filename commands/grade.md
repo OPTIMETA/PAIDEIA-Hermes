@@ -28,26 +28,18 @@ Follow the answer-processing skill pipeline:
    ```bash
    STEM=$(basename "answers/<stem>.pdf" .pdf)
    TMPDIR="answers/converted/.tmp-${STEM}"
-   mkdir -p "$TMPDIR"
-   pdftoppm -r 200 -png "answers/${STEM}.pdf" "$TMPDIR/page"
-
-   # Downsize to max 1800px width to keep Read-tool image payloads small.
-   # Without this, 200-DPI letter-size pages are ~1700–2200px wide and each page
-   # eats ~0.5–1.0 MB of image tokens — fine for 1–2 pages, brutal for 10+.
-   # Mirrors the resize step used by /paideia ingest for lecture/homework scans.
-   python3 - "$TMPDIR" <<'PY'
-   import sys, pathlib
-   from PIL import Image
-   MAX_W = 1800
-   for p in sorted(pathlib.Path(sys.argv[1]).glob("page-*.png")):
-       img = Image.open(p)
-       if img.width > MAX_W:
-           ratio = MAX_W / img.width
-           img.resize((MAX_W, int(img.height * ratio))).save(p, optimize=True)
-   PY
+   python3 "${PAIDEIA_PLUGIN_ROOT}/pd_render.py" --dpi=200 \
+     "answers/${STEM}.pdf" "$TMPDIR"
    ```
 
-   This produces `$TMPDIR/page-1.png`, `$TMPDIR/page-2.png`, ... (each ≤1800px wide). Now **use the read_file tool on each PNG in order** and synthesize clean markdown yourself, following the transcription prompt contract from `skills/paideia-vision-ocr/SKILL.md`:
+   The same renderer `/paideia ingest` uses — rasterize and downscale in one
+   streaming pass. It caps each page at 1800 px on the long edge, which matters
+   here for cost as much as for limits: 200-DPI letter pages come out
+   ~1700–2200 px and each one costs ~0.5–1.0 MB of image tokens, fine for 2
+   pages and brutal for 10. Page numbers are zero-padded to the page count, so
+   **sorted filename order is page order** even past 99 pages.
+
+   This produces `$TMPDIR/p01.png`, `$TMPDIR/p02.png`, ... Now **use the read_file tool on each PNG in sorted order** and synthesize clean markdown yourself, following the transcription prompt contract from `skills/paideia-vision-ocr/SKILL.md`:
 
    - Prose stays in its original language (English, Korean, etc.) — do not translate.
    - Math as `$...$` / `$$...$$`.

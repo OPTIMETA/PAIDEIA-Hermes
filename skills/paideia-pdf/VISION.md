@@ -21,8 +21,8 @@ These failures are silent — the extraction completes, the file gets written, a
 
 ```
 materials/<cat>/X.pdf
-    ├─(pdf2image, dpi=160)→  converted/<cat>/_pages/X/p01..pNN.png
-    ├─(PIL resize, ≤1800px)→ (in-place)
+    ├─(pd_render.py: dpi=160, ≤1800px, one page at a time)
+    │      → converted/<cat>/_pages/X/p01..pNN.png
     └─(parallel Agent per file, vision Read of PNGs)→ converted/<cat>/X.md
 ```
 
@@ -30,40 +30,30 @@ One agent per PDF, spawned in parallel. Each agent handles only its own file's p
 
 ## Step 1 — Render pages to PNG
 
-```python
-from pdf2image import convert_from_path
-from pathlib import Path
-
-imgs = convert_from_path("materials/lectures/Lecture1.pdf", dpi=160)
-out = Path("converted/lectures/_pages/Lecture1"); out.mkdir(parents=True, exist_ok=True)
-for i, im in enumerate(imgs, 1):
-    im.save(out / f"p{i:02d}.png", "PNG", optimize=True)
+```bash
+python3 "${PAIDEIA_PLUGIN_ROOT}/pd_render.py" \
+  materials/lectures/Lecture1.pdf converted/lectures/_pages/Lecture1
 ```
 
-`dpi=160` is the sweet spot: readable math, reasonable file size. Lower and sub/superscripts blur; higher just burns disk.
+One command does rasterize **and** downscale. It prints one PNG path per line.
+Do not hand-roll this in inline Python — the script is the single source of
+truth for three constraints that are easy to get subtly wrong:
 
-## Step 2 — Enforce the 2000px ceiling
+**`dpi=160`** is the sweet spot: readable math, reasonable file size. Lower and sub/superscripts blur; higher just burns disk.
+
+**Streaming, one page at a time.** `convert_from_path()` without `first_page`/`last_page` decodes the entire PDF into memory first: a 120-page chapter at `dpi=160` peaks at ~3 GB, versus ~47 MB streaming. Textbook chapters are exactly the case that OOMs.
+
+**Padding sized to the page count.** A fixed `p{i:02d}` sorts `p100` between `p10` and `p11`, and the agent reads pages in sorted order — the transcript comes out scrambled with nothing to flag it. The script pads to the width of the total instead (`p001.png … p120.png`).
+
+## Step 2 — The 2000px ceiling (already enforced by Step 1)
 
 **Critical constraint.** Claude's many-image requests reject any image whose long edge exceeds ~2000 px with:
 
 > An image in the conversation exceeds the dimension limit for many-image requests (2000px). Run /compact to remove old images from context, or start a new session.
 
-Slide decks at `dpi=160` rendered from 16:9 PDFs routinely produce 4267×2400 PNGs, which blows past that. Downscale **before** any vision agent starts reading, to max 1800 px long edge (safety margin under 2000):
+Slide decks at `dpi=160` rendered from 16:9 PDFs routinely produce 4267×2400 PNGs, which blows past that. `pd_render.py` caps every page at 1800 px on the long edge (LANCZOS, safety margin under 2000) **as it writes it**, so an oversized PNG never lands on disk in the first place.
 
-```python
-from PIL import Image
-from pathlib import Path
-
-MAX = 1800
-for png in Path("converted/lectures/_pages").rglob("*.png"):
-    im = Image.open(png); w, h = im.size
-    if max(w, h) <= MAX:
-        continue
-    scale = MAX / max(w, h)
-    im.resize((int(w*scale), int(h*scale)), Image.LANCZOS).save(png, "PNG", optimize=True)
-```
-
-If an agent started before the resize ran, it will have already captured the oversized image into its context and the request dies on the way to the model — the whole agent-run wastes. **Resize first, agents second.**
+This ordering is the point: an agent that starts reading before a separate resize pass has run captures the oversized image into its context, and the request dies on the way to the model — the whole agent-run wastes. Rendering and resizing in one pass removes the window entirely. If you ever bypass the script, resize first, agents second.
 
 ## Step 3 — Parallel agents, one per file
 
@@ -77,8 +67,9 @@ pdfplumber is unreliable on course materials (it splits equations
 across lines and interleaves columns), so we render each page and
 read it visually.
 
-Input: page images at <abs_path>/_pages/<stem>/p01.png through pNN.png
-       (NN pages). Images are ≤1800px on the long edge.
+Input: the page images in <abs_path>/_pages/<stem>/ — read them in
+       sorted filename order (p01.png, p02.png, … ; padding width
+       depends on the page count). NN pages, each ≤1800px long edge.
 Output: overwrite <abs_path>/<stem>.md
 
 Procedure:
@@ -125,7 +116,7 @@ Leave `_pages/` around only while a re-run is possible — once the markdown is 
 Validated on a 13-lecture Quantum Mechanics course, ~208 pages re-extracted:
 
 - **0 `[?]` markers needed.** At `dpi=160` every equation, subscript, bra-ket, partial derivative, operator hat, and Greek letter was legible.
-- Two of the initial agents failed on the oversized-image error because they started reading before the resize pass ran. Resizing preemptively avoided this for every subsequent run — hence Step 2 comes before Step 3.
+- Two of the initial agents failed on the oversized-image error because they started reading before the separate resize pass had run. That race is what motivated folding the resize into `pd_render.py` itself, so no oversized PNG ever exists on disk.
 - Output quality vs `pdfplumber`: equations render as `$$\hat H = -\frac{\hbar^2}{2m}\partial_x^2 + V(x)$$` instead of `ℏ ∂ p2 ℏ 2 ∂ 2 p ̂ =  H  = + V ( x )  Ĥ = − + V ( x )`. Night and day.
 - Blank final pages are common (title separators, thank-you slides). Agents correctly mark them `*[blank]*`.
 
@@ -140,4 +131,4 @@ The `<domain>` placeholder in the prompt is the only thing that changes per cour
 
 ## TL;DR
 
-Every `materials/**/*.pdf` → render at `dpi=160` → resize all PNGs to ≤1800 px **before** any agent starts → one agent per PDF in parallel → each agent reads images **sequentially** → clean LaTeX markdown out → `rm -rf converted/*/_pages`.
+Every `materials/**/*.pdf` → `pd_render.py` (renders at `dpi=160` and caps at ≤1800 px in one streaming pass) → one agent per PDF in parallel → each agent reads images **sequentially, in sorted filename order** → clean LaTeX markdown out → `rm -rf converted/*/_pages`.

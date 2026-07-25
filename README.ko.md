@@ -322,10 +322,19 @@ PAIDEIA-Hermes/                     # == ~/.hermes/plugins/paideia/
 ├── pd_status/banner/doctor.py             # 상태 · 배너 · 진단
 ├── pd_render/vision_ocr.py                # PDF→PNG + 오프라인 OCR (단독 실행)
 ├── pd_prompts/commands.py                 # inject 프롬프트 + /paideia 디스패처
+├── tests/                          # 표준 라이브러리만 쓰는 회귀 테스트 — ./tests/run.sh
 ├── commands/                       # 에이전트용 명령 스펙 15개(.md)
 ├── skills/paideia-{pdf,vision-ocr,course-builder,exam-drill,answer-processing,alt-import}/
-└── install.sh  LICENSE  README.md  README.ko.md
+└── install.sh  LICENSE  CHANGELOG.md  README.md  README.ko.md
 ```
+
+패치를 보내기 전에 테스트를 돌려 주세요. 설치 과정도, pytest도, venv도 필요 없습니다.
+
+```bash
+./tests/run.sh          # 65개, 약 12초
+```
+
+결정형 엔진을 처음부터 끝까지 훑고, 조용히 어긋나기 쉬운 파일 간 약속도 함께 붙잡아 둡니다. `pd_doctor.py`는 단독 실행을 위해 디렉터리 골격·메타 키·오류 로그 시드를 일부러 따로 들고 있고, 모든 LLM 서브커맨드는 명령 스펙과 실제로 존재하는 스킬을 둘 다 갖고 있어야 합니다.
 
 hermes 확장 표면으로의 매핑은 이렇습니다.
 

@@ -17,7 +17,7 @@ Prerequisite: if `course-index/` is empty, run `/paideia analyze` first — prob
 Procedure:
 
 0. **Weakmap mode.** If the first arg is `weakmap`:
-   - Find the latest `weakmap/weakmap_*.md` (by mtime). If missing, tell the user to run `/paideia weakmap` first and abort.
+   - Find the latest `weakmap/weakmap_*.md` — highest filename timestamp (reverse-lexical sort on the name), matching `/paideia weakmap` and the session banner. If missing, tell the user to run `/paideia weakmap` first and abort.
    - Parse its "Top 5 weaknesses" and "User-declared weaknesses" sections to collect a target set of (§, Pk) pairs.
    - Design the N-problem mix so every top weakness is covered at least once; user-declared items take priority. Spread remaining slots over top-ranked error patterns.
    - Filename override: save to `quizzes/weakmap_<ts>.md` (+ `_answers.md`). Cite which weakness entry each problem targets in the footer.

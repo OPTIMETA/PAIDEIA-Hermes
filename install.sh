@@ -14,7 +14,13 @@ mkdir -p "$HERMES_HOME/plugins"
 
 if [ "${1:-}" = "--copy" ]; then
   rm -rf "$DEST"
-  cp -R "$SRC" "$DEST"
+  mkdir -p "$DEST"
+  # tar, not `cp -R`: the checkout carries .git (tens of MB of history the plugin
+  # never reads) and __pycache__ (.pyc compiled against whichever interpreter ran
+  # last, which is not necessarily the one hermes will use).
+  ( cd "$SRC" && tar --exclude='./.git' --exclude='./tests' \
+      --exclude='__pycache__' --exclude='.DS_Store' -cf - . ) \
+    | ( cd "$DEST" && tar -xf - )
   echo "Copied $SRC -> $DEST"
 else
   ln -sfn "$SRC" "$DEST"

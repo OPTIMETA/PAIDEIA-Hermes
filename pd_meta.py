@@ -10,7 +10,9 @@ byte-identical copy.
 from __future__ import annotations
 
 import datetime
+import os
 import re
+import tempfile
 from pathlib import Path
 
 # Canonical key order — write_meta() emits keys in exactly this order.
@@ -27,6 +29,36 @@ VALID_OCR = ("claude", "ollama", "tesseract")
 VALID_LANG = ("en", "ko")
 
 _META_LINE_RX = re.compile(r"^\s*([A-Z_][A-Z0-9_]*)\s*:\s*(.+?)\s*$")
+
+
+def atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> Path:
+    """Write *text* to *path* atomically — temp file in the same dir, then rename.
+
+    A truncate-in-place write that dies mid-flight (SIGINT, full disk, crash)
+    leaves a half-written or empty file behind. For ``.course-meta`` that is
+    unrecoverable in a specific way: its *existence* is what marks the folder as
+    a course, so a zero-byte survivor makes every ``/paideia`` subcommand refuse
+    to run while the file still looks present. ``os.replace`` is atomic on POSIX
+    and Windows, so a concurrent reader sees either the old file or the new one.
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(
+        dir=str(path.parent), prefix=f".{path.name}.", suffix=".tmp"
+    )
+    try:
+        with os.fdopen(fd, "w", encoding=encoding, newline="\n") as fh:
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+    return path
 
 
 def parse_meta(cwd: Path) -> dict[str, str]:
@@ -59,9 +91,7 @@ def write_meta(cwd: Path, meta: dict[str, str]) -> Path:
     for k, v in meta.items():
         if k not in META_KEYS:
             lines.append(f"{k}: {str(v).strip()}")
-    p = Path(cwd) / ".course-meta"
-    p.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return p
+    return atomic_write_text(Path(cwd) / ".course-meta", "\n".join(lines) + "\n")
 
 
 def read_lang(cwd: Path) -> str:

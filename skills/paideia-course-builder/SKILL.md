@@ -45,7 +45,9 @@ Ambiguous location (e.g., a PDF in `materials/` root)? Ask user once to categori
 **All `.pdf` files in `materials/**` go through the vision pipeline.** `pdfplumber` was tried as a fast path and proved unreliable on course materials — even prose-heavy textbook pages silently word-salad when they mix equations or multi-column figures. Routing everything uniformly through vision is simpler than maintaining per-category heuristics with fallbacks. Full pipeline in `skills/paideia-pdf/VISION.md`; the short form:
 
 1. Load `skills/paideia-pdf/SKILL.md` and `skills/paideia-pdf/VISION.md`.
-2. Render each PDF to PNG at `dpi=160` (via `pdf2image`) into `converted/<category>/_pages/<stem>/`.
+2. Render each PDF into `converted/<category>/_pages/<stem>/` with
+   `python3 "${PAIDEIA_PLUGIN_ROOT}/pd_render.py" <pdf> <out_dir>` — one
+   streaming pass that rasterizes at `dpi=160` and caps every page at 1800 px.
 3. Resize all rendered PNGs to ≤1800 px on the long edge **before** any agent starts reading — this is the hard 2000 px many-image limit; violating it wastes entire agent runs.
 4. Spawn one parallel `general-purpose` agent per PDF. Each agent reads its own pages **sequentially** (not in parallel batches — same dimension limit) and transcribes to clean LaTeX markdown (`$...$` / `$$...$$`). Unreadable symbols get `[?]`.
 5. Write `converted/<category>/<stem>.md` with provenance: `<!-- SOURCE: materials/<category>/<stem>.pdf, extracted <YYYY-MM-DD>, method: vision -->`.

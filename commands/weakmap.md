@@ -19,7 +19,12 @@ Use when the user notices "I think I'm weak at this point" while studying — th
 - File name: `weakmap/weakmap_<YYYY-MM-DD_HHmm>.md`
 - Top heading: `# Weakmap — <YYYY-MM-DD HH:mm>`
 - **Never overwrite.** Always save a new timestamped file (preserve history).
-- "Latest report" = the file in `weakmap/` with the most recent mtime.
+- "Latest report" = the `weakmap/weakmap_*.md` whose **filename timestamp** sorts
+  highest (plain reverse-lexical sort on the name), not the newest mtime. This is
+  what `pd_weakmap.latest_weakmap()` does, and the banner/status line must agree
+  with this command. Name order also survives a `git clone`, which stamps every
+  file with the checkout time and would otherwise randomize mtime ordering — the
+  course folder is meant to be committed.
 
 ## Branches
 

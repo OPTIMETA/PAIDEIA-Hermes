@@ -210,14 +210,57 @@ def dedupe_loops(text: str) -> str:
 _TESS_LANG = {"en": "eng", "ko": "eng+kor"}
 
 
-def tesseract_fallback(images, lang: str = DEFAULT_LANG) -> str:
+def page_count(pdf_path: Path) -> int:
+    """Number of pages in *pdf_path* (0 if poppler can't report it)."""
+    from pdf2image import pdfinfo_from_path
+
+    try:
+        return int(pdfinfo_from_path(str(pdf_path))["Pages"])
+    except Exception:
+        return 0
+
+
+def iter_pages(pdf_path: Path, total: int | None = None):
+    """Yield ``(page_number, PIL.Image)`` one page at a time.
+
+    ``convert_from_path`` without ``first_page``/``last_page`` decodes the whole
+    PDF into memory: at ``DPI=300`` a 40-page hand-written scan is roughly a
+    gigabyte of RGB bitmaps, on top of whatever the local VLM is already holding.
+    Rendering one page per call keeps peak memory at a single page.
+
+    Deliberately a local copy of the same loop in the sibling ``pd_render.py``:
+    this module's contract is that ``python3 <abspath>/pd_vision_ocr.py`` runs
+    from any working directory with zero import assumptions. ``tests/`` pins the
+    two implementations to the same page ordering so they can't drift apart.
+    """
+    from pdf2image import convert_from_path
+
+    if total is None:
+        total = page_count(pdf_path)
+    if total <= 0:
+        for i, img in enumerate(convert_from_path(str(pdf_path), dpi=DPI), 1):
+            yield i, img
+        return
+    for i in range(1, total + 1):
+        imgs = convert_from_path(str(pdf_path), dpi=DPI, first_page=i, last_page=i)
+        if not imgs:
+            continue
+        img = imgs[0]
+        try:
+            yield i, img
+        finally:
+            img.close()
+
+
+def tesseract_fallback(pages, lang: str = DEFAULT_LANG) -> str:
+    """Transcribe an iterable of ``(page_number, image)`` with pytesseract."""
     import pytesseract
+
     tess_lang = _TESS_LANG.get(lang, "eng")
-    out = ""
-    for i, img in enumerate(images):
-        text = pytesseract.image_to_string(img, lang=tess_lang)
-        out += f"## Page {i+1}\n\n{text}\n\n"
-    return out
+    out = []
+    for i, img in pages:
+        out.append(f"## Page {i}\n\n{pytesseract.image_to_string(img, lang=tess_lang)}\n")
+    return "\n".join(out)
 
 
 def ocr_pdf(
@@ -227,9 +270,10 @@ def ocr_pdf(
     course_name: str | None = None,
     lang: str | None = None,
 ) -> None:
-    from pdf2image import convert_from_path
-
-    images = convert_from_path(str(pdf_path), dpi=DPI)
+    pdf_path = Path(pdf_path)
+    out_path = Path(out_path)
+    n_pages = page_count(pdf_path)
+    pages_label = n_pages if n_pages > 0 else "?"
 
     effective_course = course_name or read_course_name(Path.cwd()) or DEFAULT_COURSE
     effective_lang = (lang or read_interface_lang(Path.cwd()) or DEFAULT_LANG).strip().lower()
@@ -242,38 +286,41 @@ def ocr_pdf(
         header = (
             f"# Vision-OCR transcription\n\n"
             f"<!-- SOURCE: {pdf_path.name}, tesseract {tess_lang} @ {DPI}dpi, "
-            f"{len(images)} pages -->\n"
+            f"{pages_label} pages -->\n"
             f"<!-- TIER: tesseract (explicit) -->\n\n"
         )
-        body = tesseract_fallback(images, effective_lang)
+        body = tesseract_fallback(iter_pages(pdf_path, n_pages), effective_lang)
     else:
         header = (
             f"# Vision-OCR transcription\n\n"
             f"<!-- SOURCE: {pdf_path.name}, "
-            f"{OLLAMA_MODEL} @ {DPI}dpi, {len(images)} pages, "
+            f"{OLLAMA_MODEL} @ {DPI}dpi, {pages_label} pages, "
             f"course: {effective_course}, lang: {effective_lang} -->\n\n"
         )
         try:
             sys.stderr.write(f"[vision-ocr] warming up {OLLAMA_MODEL} ...\n")
             warmup_ollama()
             pages_md = []
-            for i, img in enumerate(images):
-                sys.stderr.write(f"[vision-ocr] page {i+1}/{len(images)} ...\n")
+            for i, img in iter_pages(pdf_path, n_pages):
+                sys.stderr.write(f"[vision-ocr] page {i}/{pages_label} ...\n")
                 sys.stderr.flush()
-                b64 = image_to_b64(img)
-                md = call_ollama_vision(b64, prompt)
-                pages_md.append(f"## Page {i+1}\n\n{md}\n")
+                md = call_ollama_vision(image_to_b64(img), prompt)
+                pages_md.append(f"## Page {i}\n\n{md}\n")
             body = "\n".join(pages_md)
         except Exception as e:
             sys.stderr.write(f"[vision-ocr] ollama tier failed: {e}\n")
             sys.stderr.write("[vision-ocr] falling back to tesseract...\n")
+            # Re-render from the PDF: the ollama iterator is spent, and the whole
+            # file is stamped with one tier, so partial ollama output is dropped.
             body = "<!-- TIER: tesseract fallback -->\n\n" + tesseract_fallback(
-                images, effective_lang
+                iter_pages(pdf_path, n_pages), effective_lang
             )
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(header + body)
-    sys.stderr.write(f"[vision-ocr] wrote {out_path} ({len(header+body)} chars)\n")
+    # encoding is explicit: without it Python uses the locale encoding, which
+    # mangles (or hard-fails on) Korean transcriptions under a C/POSIX locale.
+    out_path.write_text(header + body, encoding="utf-8")
+    sys.stderr.write(f"[vision-ocr] wrote {out_path} ({len(header + body)} chars)\n")
 
 
 def _parse_args(argv: list[str]) -> tuple[str, Path, Path, str | None, str | None]:
@@ -308,4 +355,7 @@ def _parse_args(argv: list[str]) -> tuple[str, Path, Path, str | None, str | Non
 
 if __name__ == "__main__":
     engine, pdf, out, course, lang = _parse_args(sys.argv)
+    if not pdf.is_file():
+        print(f"error: no such PDF: {pdf}", file=sys.stderr)
+        sys.exit(2)
     ocr_pdf(pdf, out, engine=engine, course_name=course, lang=lang)

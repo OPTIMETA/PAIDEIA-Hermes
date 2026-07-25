@@ -83,9 +83,27 @@ def _help(cwd: Path) -> str:
 
 
 def _ack(sub: str, cwd: Path, lang: str) -> str:
+    # No provider name here: hermes is model-agnostic and the README promises
+    # switching providers changes nothing about PAIDEIA. Naming one would be
+    # wrong for every user who picked a different one.
     if lang == "ko":
-        return f"▶ /paideia {sub} — 에이전트(codex)에 전달했습니다 · 작업 디렉터리: {cwd}"
-    return f"▶ /paideia {sub} — handed to the agent (codex) · working dir: {cwd}"
+        return f"▶ /paideia {sub} — 에이전트에 전달했습니다 · 작업 디렉터리: {cwd}"
+    return f"▶ /paideia {sub} — handed to the agent · working dir: {cwd}"
+
+
+def _bad_exam_date(value: str, lang: str) -> str:
+    if lang == "ko":
+        return (
+            f"✗ exam={value!r} 은 올바른 날짜가 아닙니다 — YYYY-MM-DD 형식으로 주세요 "
+            f"(예: exam=2026-08-30).\n"
+            f"  코스를 만들지 않았습니다. 날짜 없이는 D-N·단계 표시가 동작하지 않습니다."
+        )
+    return (
+        f"✗ exam={value!r} is not a valid date — use YYYY-MM-DD "
+        f"(e.g. exam=2026-08-30).\n"
+        f"  No course was created: without a parseable date the D-N countdown and "
+        f"phase tracking silently do nothing."
+    )
 
 
 def _parse_kv(rest: str) -> dict[str, str]:
@@ -126,6 +144,11 @@ def _do_init(rest: str, cwd: Path, ctx) -> str:
         lang = kv.get("lang", "en").lower()
         if lang not in pd_meta.VALID_LANG:
             lang = "en"
+        if pd_meta.days_until(exam) is None:
+            # Refuse rather than scaffold: an unparseable EXAM_DATE produces a
+            # course where the banner, status line and every phase transition
+            # quietly omit the countdown, with nothing pointing at the typo.
+            return _bad_exam_date(exam, lang)
         ocr = kv.get("ocr", "claude").lower()
         if ocr not in pd_meta.VALID_OCR:
             ocr = "claude"

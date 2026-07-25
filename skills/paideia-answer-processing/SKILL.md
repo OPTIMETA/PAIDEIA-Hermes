@@ -29,14 +29,27 @@ If `/paideia grade` was called with an argument, use it as a hint. Otherwise fin
 
 ### Step 2: Convert PDF to MD (if PDF)
 
-**Use the `vision-ocr` skill** — delegates to a local VLM (Qwen3-VL 8B via ollama) for clean prose + LaTeX transcription (the script reads `INTERFACE_LANG` from `.course-meta` so the VLM keeps the handwriting in its original language), with pytesseract as automatic fallback.
+**Use the `vision-ocr` skill** and **dispatch on the selected engine** — never
+hard-code one. The engine is `--ocr=<engine>` if `/paideia grade` was given it,
+otherwise `OCR_ENGINE` from `.course-meta`, otherwise `claude`:
 
-```bash
-python3 "${PAIDEIA_PLUGIN_ROOT}/pd_vision_ocr.py" answers/<name>.pdf answers/converted/<name>.md
-```
+| Engine | Action |
+|---|---|
+| `claude` (default) | Render with `pd_render.py --dpi=200`, then read each page PNG in sorted order with the read_file tool and synthesize the markdown yourself. No subprocess VLM. Full recipe in `commands/grade.md` §2a. |
+| `ollama` | `python3 "${PAIDEIA_PLUGIN_ROOT}/pd_vision_ocr.py" --engine=ollama answers/<name>.pdf answers/converted/<name>.md` |
+| `tesseract` | same script with `--engine=tesseract` |
 
-The script handles model warmup, page-by-page inference, and tier fallback. See `skills/paideia-vision-ocr/SKILL.md`. The output header tells the grader which tier produced the text:
+Getting this wrong is expensive in one direction: defaulting to `ollama` on a
+machine set up for `claude` stalls the grade waiting on a 6 GB model that was
+never pulled. Read the engine first, then act.
 
+For the two script tiers, `pd_vision_ocr.py` handles model warmup, page-by-page
+inference, and tier fallback, and reads `INTERFACE_LANG` from `.course-meta` so
+the VLM keeps handwriting in its original language. See
+`skills/paideia-vision-ocr/SKILL.md`. The output header tells the grader which
+tier produced the text:
+
+- `<!-- SOURCE: ..., claude-vision (native), N pages -->` → high-confidence
 - `<!-- SOURCE: ..., qwen3-vl:8b @ 300dpi, N pages -->` → high-confidence
 - `<!-- TIER: tesseract fallback -->` → degraded; treat results conservatively
 
@@ -140,6 +153,6 @@ If the user pastes their work directly into chat (not as PDF), grade it from con
 ## Integration
 
 - Called by `/paideia grade`
-- Uses `pdf` skill for OCR
+- Uses the `vision-ocr` skill for transcription (engine-dispatched, see Step 2)
 - Reads `course-index/patterns.md` (pattern IDs) and `converted/solutions/` or equivalent
 - Writes to `errors/log.md` and `answers/converted/`

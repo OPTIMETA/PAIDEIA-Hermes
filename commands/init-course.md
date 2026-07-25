@@ -29,11 +29,13 @@ the install command but do NOT auto-run it (these need brew/apt/pip and often
 sudo):
 - macOS: `brew install poppler tesseract tesseract-lang`
 - Ubuntu: `sudo apt-get install poppler-utils tesseract-ocr tesseract-ocr-kor`
-- Python libs: `python3 -m pip install --user pypdf pdfplumber pytesseract pdf2image pillow reportlab`
+- Python libs: `python3 -m pip install --user pdf2image pillow pytesseract reportlab pypdf pdfplumber`
 
-`poppler` is required by every OCR tier; `tesseract` only for the
-tesseract/ollama tiers; `ollama` + `qwen3-vl:8b` only if the user picks the
-ollama OCR engine.
+`poppler` plus the Python `pdf2image` and `pillow` are required by every OCR
+tier — each one starts by rasterizing the PDF. `tesseract` + `pytesseract` are
+needed only for the tesseract tier and the ollama tier's fallback; `reportlab`
+only for `/paideia cheatsheet --pdf`; `ollama` + `qwen3-vl:8b` only if the user
+picks the ollama OCR engine. `/paideia doctor` grades them on exactly this split.
 
 ## Step 2 — OCR engine choice (ask in `INTERFACE_LANG`)
 
@@ -58,23 +60,26 @@ Ask four short questions:
 
 ## Step 4 — Create the workspace
 
-Write `.course-meta` in the CWD with exactly these six keys (one `KEY: value`
-per line, in this order):
+Hand the collected answers to the **non-interactive path** rather than writing
+files yourself — it is the single implementation of scaffolding, so both entry
+points produce byte-identical workspaces:
 
 ```
-COURSE_NAME: <answer1>
-EXAM_DATE: <answer2>
-EXAM_TYPE: <answer3>
-USER_WEAK_ZONES: <answer4>
-OCR_ENGINE: <from Step 2>
-INTERFACE_LANG: <from Step 0>
+/paideia init name="<answer1>" exam=<answer2> type=<answer3> \
+              weak="<answer4>" ocr=<from Step 2> lang=<from Step 0>
 ```
 
-Then run `/paideia doctor --fix`. With `.course-meta` now present, `--fix`
-creates the full directory skeleton (`materials/…`, `converted/…`,
-`course-index/`, `quizzes/`, `mock/`, `twins/`, `chain/`, `derivations/`,
-`cheatsheet/`, `weakmap/`, `answers/{converted,_archive}`, `errors/`) and seeds
-`errors/log.md`. Relay the doctor report.
+That one call writes `.course-meta` (six keys, canonical order), creates the full
+directory skeleton (`materials/…`, `converted/…`, `course-index/`, `quizzes/`,
+`mock/`, `twins/`, `chain/`, `derivations/`, `cheatsheet/`, `weakmap/`,
+`answers/{converted,_archive}`, `errors/`), seeds `errors/log.md`, writes
+`PAIDEIA.md`, and installs a `.gitignore` that keeps bulky scans in
+`answers/_archive/` out of version control.
+
+It rejects a malformed `exam=` date instead of scaffolding a course whose
+countdown silently never appears — if it does, re-ask question 2 and retry.
+
+Then run `/paideia doctor` and relay the report to confirm the result.
 
 Optionally `git init && git add -A && git commit -m "paideia: initial setup"`
 if the user wants version control (recommended — the error log is a learning

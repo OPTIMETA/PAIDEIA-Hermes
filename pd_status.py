@@ -10,17 +10,19 @@ Phases (artifact/activity-derived, not time-derived):
 """
 from __future__ import annotations
 
-import glob
 from pathlib import Path
 
 from . import pd_errlog, pd_meta, pd_weakmap
 
 
 def _quiz_problems_exist(cwd: Path) -> bool:
-    for p in glob.glob(str(Path(cwd) / "quizzes" / "*.md")):
-        if not p.endswith("_answers.md"):
-            return True
-    return False
+    # Path.glob, not glob.glob: the latter treats the *course path* as part of
+    # the pattern, so a folder named "Math [2026] Final" matches nothing and the
+    # phase silently degrades from `drill` to `diag`.
+    quizzes = Path(cwd) / "quizzes"
+    if not quizzes.is_dir():
+        return False
+    return any(not p.name.endswith("_answers.md") for p in quizzes.glob("*.md"))
 
 
 def detect_phase(cwd: Path, days: int | None) -> str:

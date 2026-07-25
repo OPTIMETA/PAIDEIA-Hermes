@@ -45,15 +45,21 @@ ERRORS_LOG_SEED = """\
 -->
 """
 
-GITIGNORE = """\
-# PAIDEIA-Hermes
-**/_pages/
-**/.tmp-*/
-*.tmp
-__pycache__/
-*.pyc
-.DS_Store
-"""
+# Patterns the course folder must ignore. `answers/_archive/` is load-bearing:
+# `/paideia grade` moves every graded scan there, and the grade spec promises the
+# user those bulky, personal PDFs stay out of version control while the converted
+# markdown trail is committed.
+GITIGNORE_PATTERNS = (
+    "**/_pages/",
+    "**/.tmp-*/",
+    "*.tmp",
+    "answers/_archive/",
+    "__pycache__/",
+    "*.pyc",
+    ".DS_Store",
+)
+
+GITIGNORE = "# PAIDEIA-Hermes\n" + "".join(f"{p}\n" for p in GITIGNORE_PATTERNS)
 
 _CONTEXT_TEMPLATE = """\
 # {course} — PAIDEIA-Hermes workspace
@@ -94,6 +100,31 @@ def ensure_dirs(cwd: Path) -> list[str]:
     return created
 
 
+def ensure_gitignore(cwd: Path) -> list[str]:
+    """Append any missing :data:`GITIGNORE_PATTERNS` to ``.gitignore``.
+
+    Appending rather than skipping-if-present matters because scaffolding is
+    re-runnable: a course created before a pattern existed would otherwise never
+    pick it up, and the user would commit scans that the grade spec told them
+    were ignored. Existing lines are left untouched.
+    """
+    gi = Path(cwd) / ".gitignore"
+    if not gi.exists():
+        pd_meta.atomic_write_text(gi, GITIGNORE)
+        return list(GITIGNORE_PATTERNS)
+    try:
+        current = gi.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+    have = {line.strip() for line in current.splitlines()}
+    missing = [p for p in GITIGNORE_PATTERNS if p not in have]
+    if missing:
+        prefix = "" if current.endswith("\n") or not current else "\n"
+        addition = prefix + "\n# PAIDEIA-Hermes\n" + "".join(f"{p}\n" for p in missing)
+        pd_meta.atomic_write_text(gi, current + addition)
+    return missing
+
+
 def scaffold_course(cwd: Path, meta: dict[str, str]) -> dict[str, object]:
     """Idempotently create the course skeleton, ``.course-meta`` and seeds.
 
@@ -107,28 +138,26 @@ def scaffold_course(cwd: Path, meta: dict[str, str]) -> dict[str, object]:
     log = cwd / "errors" / "log.md"
     seeded_log = False
     if not log.exists():
-        log.parent.mkdir(parents=True, exist_ok=True)
-        log.write_text(ERRORS_LOG_SEED, encoding="utf-8")
+        pd_meta.atomic_write_text(log, ERRORS_LOG_SEED)
         seeded_log = True
 
-    gi = cwd / ".gitignore"
-    if not gi.exists():
-        gi.write_text(GITIGNORE, encoding="utf-8")
+    ignored = ensure_gitignore(cwd)
 
     ctx = cwd / "PAIDEIA.md"
     if not ctx.exists():
-        ctx.write_text(
+        pd_meta.atomic_write_text(
+            ctx,
             _CONTEXT_TEMPLATE.format(
                 course=meta.get("COURSE_NAME", "course"),
                 exam=meta.get("EXAM_DATE", "?"),
                 etype=meta.get("EXAM_TYPE", "exam"),
                 lang=meta.get("INTERFACE_LANG", "en"),
             ),
-            encoding="utf-8",
         )
 
     return {
         "created_dirs": created,
         "seeded_log": seeded_log,
+        "gitignore_added": ignored,
         "meta_path": str(cwd / ".course-meta"),
     }

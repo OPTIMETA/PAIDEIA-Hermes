@@ -17,7 +17,7 @@ Arguments: the arguments provided above
 
 | Source | Method |
 |---|---|
-| `materials/**/*.pdf` | **Vision pipeline** (render at `dpi=160`, resize ≤1800 px, one parallel `general-purpose` agent per PDF, sequential `Read` inside the agent) |
+| `materials/**/*.pdf` | **Vision pipeline** (`pd_render.py` → `dpi=160`, ≤1800 px, one parallel `general-purpose` agent per PDF, sequential `Read` inside the agent) |
 | `materials/**/*.md` | Copy-through with provenance header |
 
 Hand-written answer PDFs (`answers/*.pdf`) are a separate path — handled by `/paideia grade`, not `/paideia ingest`.
@@ -38,40 +38,41 @@ For each `.md` already in `materials/`: mirror to `converted/<cat>/<stem>.md` ve
 <!-- SOURCE: materials/<cat>/<stem>.md, copied <YYYY-MM-DD>, method: passthrough -->
 ```
 
-### Step 3 — Render all PDFs to PNG at dpi=160
+### Step 3 — Render each PDF to page PNGs (dpi=160, ≤1800 px long edge)
 
-For each PDF that needs conversion:
+Run the bundled renderer once per PDF. It rasterizes **and** downscales in a
+single streaming pass — do not hand-roll this in inline Python:
 
-```python
-from pdf2image import convert_from_path
-from pathlib import Path
-
-for pdf_path in pdfs_to_convert:
-    cat, stem = pdf_path.parent.name, pdf_path.stem
-    out = Path(f"converted/{cat}/_pages/{stem}")
-    out.mkdir(parents=True, exist_ok=True)
-    for i, im in enumerate(convert_from_path(str(pdf_path), dpi=160), 1):
-        im.save(out / f"p{i:02d}.png", "PNG", optimize=True)
+```bash
+python3 "${PAIDEIA_PLUGIN_ROOT}/pd_render.py" \
+  "materials/<cat>/<stem>.pdf" "converted/<cat>/_pages/<stem>"
 ```
+
+It prints one PNG path per line (`p01.png`, `p02.png`, … zero-padded to the page
+count, so a 120-page chapter yields `p001.png … p120.png` and sorted order stays
+page order).
+
+Three things it guarantees that an inline loop does not:
+
+- **Memory.** It renders one page at a time. Decoding a whole PDF at once costs
+  ~3 GB for a 120-page chapter at `dpi=160`; streaming holds ~47 MB. That is the
+  difference between ingesting a textbook and being told to split the file.
+- **The 2000 px ceiling.** Every page is capped at 1800 px on the long edge
+  before it is written, so no oversized PNG ever reaches disk for an agent to
+  read. 16:9 slides at `dpi=160` render at ~4267×2400 and would otherwise
+  hard-fail the many-image request — and an agent that already pulled the
+  oversized image into context wastes its entire run.
+- **Page order.** Padding is sized to the page count, so `p100` can never sort
+  between `p10` and `p11`.
 
 `dpi=160` is the sweet spot: math stays legible, file sizes stay reasonable.
+Override with `--dpi=` / `--max-px=` only if you have a specific reason.
 
-### Step 4 — Resize every PNG to ≤1800 px long edge BEFORE any agent starts
+### Step 4 — Confirm the render before spawning agents
 
-```python
-from PIL import Image
-from pathlib import Path
-
-MAX = 1800
-for png in Path("converted").rglob("_pages/**/*.png"):
-    im = Image.open(png); w, h = im.size
-    if max(w, h) <= MAX:
-        continue
-    scale = MAX / max(w, h)
-    im.resize((int(w*scale), int(h*scale)), Image.LANCZOS).save(png, "PNG", optimize=True)
-```
-
-**This is not optional.** Claude's many-image requests hard-reject images >2000 px on the long edge; 16:9 slides at `dpi=160` produce ~4267×2400 PNGs that blow past that. Any agent that started reading before the resize ran will have already captured the oversized image into its context — its entire run wastes.
+`pd_render.py` exits non-zero on a missing/unreadable PDF. Check each render
+produced the expected page count before moving on; a PDF that failed here must
+be reported in the summary table's `Failed` column, not silently skipped.
 
 ### Step 5 — Spawn one `general-purpose` agent per PDF, in parallel, backgrounded
 
@@ -83,8 +84,9 @@ pdfplumber is unreliable on course materials (it splits equations
 across lines and interleaves columns), so we render each page and
 read it visually.
 
-Input: page images at <abs_path>/_pages/<stem>/p01.png through pNN.png
-       (NN pages). Images are ≤1800 px on the long edge.
+Input: the page images in <abs_path>/_pages/<stem>/ — read them in
+       sorted filename order (p01.png, p02.png, … ; padding width
+       depends on the page count). NN pages, each ≤1800 px long edge.
 Output: overwrite <abs_path>/<stem>.md
 
 Procedure:
@@ -147,4 +149,4 @@ End with (in $INTERFACE_LANG):
 If any file failed (encryption, corrupted PDF, agent timeout), list at the end with the specific failure reason and suggested workaround:
 - Password-protected PDF → `qpdf --password=... --decrypt in.pdf out.pdf` first
 - Agent crashed mid-run → `/paideia ingest --force` to retry just that file
-- Render step OOM on huge PDF → split the PDF first, ingest each half
+- `pd_render.py` reports 0 pages → poppler can't read the file; confirm `pdfinfo <pdf>` works
