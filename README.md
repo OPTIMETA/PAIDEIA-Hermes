@@ -133,7 +133,7 @@ Supporting: `/paideia hwmap` surfaces HW-density exam-probability, `/paideia sta
 - `poppler` (`pdftoppm`) — required by every OCR tier.
   - **macOS**: `brew install poppler tesseract tesseract-lang`
   - **Linux (Debian/Ubuntu)**: `apt-get install poppler-utils tesseract-ocr tesseract-ocr-kor`
-- Python libs (lazy — only for ingest/grade/cheatsheet): `pip install pypdf pdfplumber pdf2image pillow reportlab pytesseract`
+- Python libs: `pip install pdf2image pillow pytesseract reportlab pypdf pdfplumber`. Only `pdf2image` and `pillow` are load-bearing — every OCR tier starts by rasterizing the PDF, so `/paideia doctor` reports those two as failures and the rest as warnings naming the one command each serves (`pytesseract` → the tesseract tier, `reportlab` → `cheatsheet --pdf`, `pypdf`/`pdfplumber` → ad-hoc PDF work).
 
 **Optional — only for `--ocr=ollama` (every page image stays on your machine)**
 
@@ -327,7 +327,7 @@ The gateway runs in its configured working directory (`terminal.cwd`), so point 
 
 `/paideia ingest` routes every PDF in `materials/**` through one vision pipeline. `pdfplumber` proved unreliable even on prose pages the moment they mix equations, figures, or multi-column layouts, so everything goes through vision uniformly. `materials/**/*.md` are copied through with a provenance header.
 
-Every page is rendered to PNG at `dpi=160` and resized to ≤1800 px on the long edge **before any agent reads it** (multimodal requests reject oversized images); then hermes **delegates one subagent per PDF**, each reading its pages *sequentially* (parallel batches trip the dimension limit) and transcribing to LaTeX markdown — `$$\hat H = -\frac{\hbar^2}{2m}\partial_x^2 + V(x)$$` instead of `ℏ ∂ p2 …`. Details in `skills/paideia-pdf/VISION.md`.
+`pd_render.py` renders every page to PNG at `dpi=160` and caps it at ≤1800 px on the long edge in the same pass, so an oversized image never exists for an agent to choke on (multimodal requests reject them). It streams one page at a time — a 120-page chapter peaks at ~47 MB instead of ~3 GB, which is the difference between ingesting a textbook and having to split the file by hand. Then hermes **delegates one subagent per PDF**, each reading its pages *sequentially* and in sorted filename order (parallel batches trip the dimension limit) and transcribing to LaTeX markdown — `$$\hat H = -\frac{\hbar^2}{2m}\partial_x^2 + V(x)$$` instead of `ℏ ∂ p2 …`. Details in `skills/paideia-pdf/VISION.md`.
 
 ### Hand-writing OCR: three engines, you pick
 
@@ -335,7 +335,7 @@ You don't type math into chat — you solve on paper, scan to PDF, drop it in `a
 
 | Engine | Default? | How it runs | When to pick it |
 |---|---|---|---|
-| `claude` | **Yes** | `pdftoppm` renders each page → the agent reads each PNG with its own native vision → synthesizes markdown. No extra model, nothing to install. | The out-of-the-box path. |
+| `claude` | **Yes** | `pd_render.py` renders each page → the agent reads each PNG with its own native vision → synthesizes markdown. No extra model, nothing to install. | The out-of-the-box path. |
 | `ollama` | opt-in | `pd_vision_ocr.py --engine=ollama` → local Qwen3-VL 8B with automatic tesseract fallback. | Page images must never leave the machine. |
 | `tesseract` | opt-in | `pd_vision_ocr.py --engine=tesseract` → pytesseract (`eng`/`eng+kor`). | Lightest; acceptable for typed scans. |
 

@@ -119,9 +119,14 @@ def ensure_gitignore(cwd: Path) -> list[str]:
     have = {line.strip() for line in current.splitlines()}
     missing = [p for p in GITIGNORE_PATTERNS if p not in have]
     if missing:
-        prefix = "" if current.endswith("\n") or not current else "\n"
-        addition = prefix + "\n# PAIDEIA-Hermes\n" + "".join(f"{p}\n" for p in missing)
-        pd_meta.atomic_write_text(gi, current + addition)
+        parts = []
+        if current and not current.endswith("\n"):
+            parts.append("\n")
+        if current.strip():
+            parts.append("\n")          # blank line between their rules and ours
+        parts.append("# PAIDEIA-Hermes\n")
+        parts.extend(f"{p}\n" for p in missing)
+        pd_meta.atomic_write_text(gi, current + "".join(parts))
     return missing
 
 

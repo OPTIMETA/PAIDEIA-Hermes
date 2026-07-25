@@ -50,6 +50,15 @@ covered by `tests/` (65 tests, stdlib only — `./tests/run.sh`).
   order — a 100+ page chapter (ordinary for a textbook) was transcribed in
   scrambled sequence with nothing to signal it. Now `p001.png … p120.png`.
 
+- **PDF page numbering is correct even when poppler can't count.** The
+  fallback path (no usable `pdfinfo`) guessed a 3-wide pad, reintroducing the
+  `p1000` / `p999` ordering bug it was meant to fix past 999 pages. It now
+  counts before it names.
+- **The atomic write keeps file permissions.** `mkstemp()` hardcodes `0600`, so
+  moving to temp-file-plus-rename silently made `.course-meta`, `.gitignore` and
+  `PAIDEIA.md` owner-only. Existing modes are carried across a rewrite; new
+  files get `0644`.
+
 ### Fixed — contradictions between specs and code
 
 - **`/paideia grade` no longer risks launching the wrong OCR tier.** The
@@ -67,14 +76,35 @@ covered by `tests/` (65 tests, stdlib only — `./tests/run.sh`).
   `.course-meta` by hand and called `doctor --fix`, which creates directories but
   no `.gitignore` and no `PAIDEIA.md`. It now routes through `/paideia init`, the
   single scaffolding implementation.
+- **`/paideia init-course` is gone from the docs.** The `vision-ocr` skill told
+  users `.course-meta` is written by `/paideia init-course` — twice. That
+  subcommand does not exist; the dispatcher answers "unknown subcommand". The
+  real command is `/paideia init` (`init-course.md` is the internal spec name for
+  the interactive wizard).
+- **`hwmap` has one meaning again.** The `exam-drill` skill said
+  `/paideia hwmap blind` "lists all 🔴 and 🔴🔴 entries", and `analyze.md` sent
+  users there to "review all blind spots" — but `hwmap.md` treats `blind` as a
+  legacy alias for `hot` and returns exam-*hot* zones. Worse, the blind-spot
+  reading inverts the plugin's core thesis, stated four lines above it in the
+  same skill file: a section with no HW is the professor signalling the topic is
+  off the exam, not a hazard to drill. Both call sites now match `hwmap.md`, and
+  `analyze.md` surfaces only 🔴🔴 Critical blinds (no coverage *and* a declared
+  weak zone), which are the ones that genuinely warrant attention.
+- **The "drills never make PDFs" rule names its one exception.** The rule is
+  scoped to drill artifacts, but `/paideia cheatsheet --pdf` loads the same skill
+  and must render a PDF.
+- **`/paideia alt`'s "no export found" message follows `INTERFACE_LANG`.** It was
+  a hard-coded Korean sentence in a spec whose own header requires otherwise.
 
 ### Added
 
-- **`tests/`** — 65 stdlib-only tests, no pytest and no install step
+- **`tests/`** — 71 stdlib-only tests, no pytest and no install step
   (`./tests/run.sh`). Includes contract tests that pin `pd_doctor`'s deliberate
   standalone copies of `SKELETON`/`META_KEYS`/the errors seed to their sources,
-  and assert every LLM subcommand has both a command spec and a skill that
-  exists on disk.
+  assert every LLM subcommand has both a command spec and a skill that exists on
+  disk, and — because a spec is an instruction to an agent, so a wrong reference
+  becomes a wrong action — reject any spec that names a subcommand the
+  dispatcher would refuse or a bundled script that isn't shipped.
 - **`/paideia doctor` checks the plugin's own payload** — 24 scripts, command
   specs and skill files. A truncated clone or stale symlink previously passed
   every check and failed later, mid-command, as "no command spec file found".

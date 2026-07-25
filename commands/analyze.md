@@ -80,16 +80,23 @@ course-index/ generated.
 - patterns.md: <N> recurring patterns (P1..P<N>), <M> one-off techniques
 - coverage.md: <A> strongly covered, <B> thin, <C> blind, <D> CRITICAL blind
 
-Top 3 blind spots:
+Top 3 critical blind spots (🔴🔴 — no coverage AND in a declared weak zone):
   1. <§X> — <title>  [recommend: /paideia derive <key-concept>]
   2. <§Y> — <title>  [recommend: /paideia quiz <§Y>]
   3. <§Z> — <title>  [recommend: /paideia derive <key-concept>]
 
 Next steps:
-  /paideia hwmap blind        — review all blind spots
+  /paideia hwmap hot          — the 🔥🔥 exam-primary zones, ranked by HW density
   /paideia pattern §<weak-§>  — pattern cards for the weak section
   /paideia blind <hw-id>      — drill the HW closest to the weakness
 ```
+
+List only 🔴🔴 **Critical** blinds here, not every 🔴. A plain 🔴 means the
+professor set no HW on the section, which this plugin reads as a signal the topic
+is off the exam — surfacing those as the headline finding would send the user to
+study exactly what is least likely to be tested. If there are no 🔴🔴 entries,
+say so and point at `/paideia hwmap hot` instead. `/paideia hwmap` has no
+blind-spot mode: `blind` is only a legacy alias for `hot` there.
 
 ## Idempotence
 

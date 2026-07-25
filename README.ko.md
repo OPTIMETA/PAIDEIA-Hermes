@@ -133,7 +133,7 @@ Paideia의 등급은 이 원칙을 그대로 따르고, 드릴 명령도 기본�
 - `poppler`(`pdftoppm`) — OCR 모든 티어가 씁니다.
   - **macOS**: `brew install poppler tesseract tesseract-lang`
   - **Linux**: `apt-get install poppler-utils tesseract-ocr tesseract-ocr-kor`
-- Python 라이브러리(ingest/grade/cheatsheet 때만 필요): `pip install pypdf pdfplumber pdf2image pillow reportlab pytesseract`
+- Python 라이브러리: `pip install pdf2image pillow pytesseract reportlab pypdf pdfplumber`. 이 중 실제로 없으면 안 되는 건 `pdf2image`와 `pillow` 둘뿐입니다. OCR은 어느 티어든 PDF를 이미지로 굽는 데서 시작하니까요. `/paideia doctor`도 그 둘만 실패로 잡고, 나머지는 각각 어느 명령에 쓰이는지 적어서 경고로만 띄웁니다(`pytesseract` → tesseract 티어, `reportlab` → `cheatsheet --pdf`, `pypdf`·`pdfplumber` → 그때그때 하는 PDF 작업).
 
 **선택 — `--ocr=ollama` 쓸 때만(페이지 이미지가 기기에 머묾)**
 
@@ -280,7 +280,7 @@ PAIDEIA-Hermes는 CLI만이 아니라 hermes 메시징 게이트웨이(Slack·Di
 
 `/paideia ingest`는 `materials/**`의 모든 PDF를 하나의 비전 파이프라인으로 보냅니다. `pdfplumber`는 수식·그림·다단이 섞이면 산문 페이지조차 깨뜨려서 믿을 수 없었기에, 전부 비전으로 통일했습니다. `materials/**/*.md`는 출처 헤더를 달아 그대로 복사합니다.
 
-페이지마다 `dpi=160` PNG로 렌더링하고, **에이전트가 읽기 전에** 긴 변을 1800px 이하로 줄입니다(큰 이미지는 멀티모달이 거부하니까요). 그다음 hermes가 **PDF 하나당 서브에이전트 하나를 위임**해, 각자 페이지를 *순서대로* 읽어 LaTeX 마크다운으로 옮깁니다. `ℏ ∂ p2 …` 대신 `$$\hat H = -\frac{\hbar^2}{2m}\partial_x^2 + V(x)$$`처럼요. 자세한 내용은 `skills/paideia-pdf/VISION.md`에 있습니다.
+`pd_render.py`가 페이지마다 `dpi=160` PNG로 렌더링하면서 같은 패스에서 긴 변을 1800px 이하로 줄입니다. 큰 이미지는 멀티모달이 거부하는데, 애초에 디스크에 만들어지지 않으니 에이전트가 물릴 일이 없죠. 페이지를 한 장씩 흘려보내는 방식이라 120쪽짜리 챕터도 3GB가 아니라 47MB 언저리에서 끝납니다. 교재를 손으로 쪼개서 넣느냐 그냥 넣느냐가 여기서 갈립니다. 그다음 hermes가 **PDF 하나당 서브에이전트 하나를 위임**해, 각자 페이지를 파일명 순서대로 *하나씩* 읽어 LaTeX 마크다운으로 옮깁니다. `ℏ ∂ p2 …` 대신 `$$\hat H = -\frac{\hbar^2}{2m}\partial_x^2 + V(x)$$`처럼요. 자세한 내용은 `skills/paideia-pdf/VISION.md`에 있습니다.
 
 ### 손글씨 OCR: 엔진 셋, 골라 쓰세요
 
@@ -288,7 +288,7 @@ PAIDEIA-Hermes는 CLI만이 아니라 hermes 메시징 게이트웨이(Slack·Di
 
 | 엔진 | 기본? | 도는 방식 | 언제 고르나 |
 |---|---|---|---|
-| `claude` | **예** | `pdftoppm`로 페이지를 렌더링한 뒤, 에이전트가 자기 네이티브 비전으로 PNG를 읽어 마크다운으로 합칩니다. 추가 설치 없음. | 그냥 바로 쓰는 길. |
+| `claude` | **예** | `pd_render.py`로 페이지를 렌더링한 뒤, 에이전트가 자기 네이티브 비전으로 PNG를 읽어 마크다운으로 합칩니다. 추가 설치 없음. | 그냥 바로 쓰는 길. |
 | `ollama` | 선택 | `pd_vision_ocr.py --engine=ollama` → 로컬 Qwen3-VL 8B, 실패하면 tesseract로 자동 폴백. | 페이지 이미지가 기기 밖으로 절대 안 나가야 할 때. |
 | `tesseract` | 선택 | `pd_vision_ocr.py --engine=tesseract` → pytesseract(`eng`/`eng+kor`). | 가장 가볍고, 타이핑 스캔에 무난할 때. |
 

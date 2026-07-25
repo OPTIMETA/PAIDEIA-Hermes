@@ -196,6 +196,16 @@ class TestAtomicMeta(TempCourse):
         leftovers = [p.name for p in self.cwd.iterdir() if p.name.endswith(".tmp")]
         self.assertEqual(leftovers, [], "temp file leaked on failure")
 
+    def test_atomic_write_does_not_narrow_permissions(self) -> None:
+        """mkstemp() is 0600; the files we replace must not silently become private."""
+        self.scaffold()
+        meta = self.cwd / ".course-meta"
+        self.assertEqual(meta.stat().st_mode & 0o777, 0o644, "new file is not 0644")
+
+        os.chmod(meta, 0o640)
+        pd_meta.write_meta(self.cwd, {"COURSE_NAME": "Y"})
+        self.assertEqual(meta.stat().st_mode & 0o777, 0o640, "rewrite lost the mode")
+
     def test_roundtrip_preserves_unknown_keys(self) -> None:
         pd_meta.write_meta(self.cwd, {"COURSE_NAME": "X", "CUSTOM_KEY": "kept"})
         self.assertEqual(pd_meta.parse_meta(self.cwd)["CUSTOM_KEY"], "kept")
@@ -455,6 +465,79 @@ class TestPrompts(unittest.TestCase):
         self.assertIn("Arguments: all 5", msg)
 
 
+class TestSpecReferences(unittest.TestCase):
+    """Specs are instructions to an agent — a wrong reference becomes a wrong action.
+
+    These catch the class of bug where prose and code drift: a spec telling the
+    user to run a subcommand the dispatcher rejects, or to execute a bundled
+    script that isn't shipped.
+    """
+
+    @staticmethod
+    def _spec_files() -> list[Path]:
+        return sorted((REPO / "commands").glob("*.md")) + sorted(
+            (REPO / "skills").rglob("*.md")
+        )
+
+    def test_every_referenced_subcommand_is_dispatchable(self) -> None:
+        import re
+
+        valid = pd_commands.LLM_SUBS | pd_commands.DETERMINISTIC
+        bad: list[str] = []
+        for path in self._spec_files():
+            text = path.read_text(encoding="utf-8")
+            for m in re.finditer(r"/paideia\s+([a-zA-Z][\w-]*)", text):
+                sub = m.group(1).lower()
+                if sub not in valid:
+                    bad.append(f"{path.relative_to(REPO)}: /paideia {sub}")
+        self.assertEqual(
+            bad, [],
+            "spec references a subcommand the dispatcher rejects "
+            f"(valid: {sorted(valid)})",
+        )
+
+    def test_every_referenced_bundled_script_exists(self) -> None:
+        import re
+
+        bad: list[str] = []
+        for path in self._spec_files():
+            text = path.read_text(encoding="utf-8")
+            for m in re.finditer(r"\$\{PAIDEIA_PLUGIN_ROOT\}/([\w./-]+)", text):
+                target = m.group(1)
+                if not (REPO / target).exists():
+                    bad.append(f"{path.relative_to(REPO)}: {target}")
+        self.assertEqual(bad, [], "spec invokes a script that is not shipped")
+
+    def test_render_script_is_actually_wired_in(self) -> None:
+        """pd_render.py shipped unreferenced once; keep it reachable."""
+        referenced = [
+            p.relative_to(REPO).as_posix()
+            for p in self._spec_files()
+            if "pd_render.py" in p.read_text(encoding="utf-8")
+        ]
+        self.assertIn("commands/ingest.md", referenced)
+        self.assertIn("commands/grade.md", referenced)
+
+    def test_hwmap_has_no_blind_spot_mode(self) -> None:
+        """`blind` is a legacy alias for `hot`, not a blind-spot listing.
+
+        Treating it as one inverts the plugin's core thesis: a section with no HW
+        is the professor signalling it is off the exam, not a hazard to drill.
+        """
+        hwmap = (REPO / "commands" / "hwmap.md").read_text(encoding="utf-8")
+        self.assertIn("backwards compatibility", hwmap)
+        offenders = [
+            path.relative_to(REPO).as_posix()
+            for path in self._spec_files()
+            if "/paideia hwmap blind" in path.read_text(encoding="utf-8")
+        ]
+        self.assertEqual(
+            offenders, [],
+            "these send the user to a mode that returns exam-hot zones, "
+            "not blind spots",
+        )
+
+
 class TestGatewayHook(unittest.TestCase):
     """`/paideia <sub>` typed into Slack/Discord must reach the agent."""
 
@@ -700,6 +783,27 @@ class TestRenderEndToEnd(unittest.TestCase):
         for p in pages:
             with Image.open(p) as im:
                 self.assertLessEqual(max(im.size), 400, f"{p.name} exceeds the cap")
+
+    def test_padding_is_right_when_the_page_count_is_unknown(self) -> None:
+        """The poppler-can't-count fallback must not guess the padding width.
+
+        A guessed width is how p1000.png ends up sorting before p999.png — the
+        same silent scrambling the main path was fixed for.
+        """
+        pdf = _make_pdf(self.tmp / "opaque.pdf", 12)
+        real = pd_render.page_count
+        pd_render.page_count = lambda _p: 0          # simulate an unusable pdfinfo
+        try:
+            pages = pd_render.render_pdf_pages(pdf, self.tmp / "out", dpi=40, max_px=300)
+        finally:
+            pd_render.page_count = real
+        self.assertEqual(len(pages), 12)
+        self.assertEqual(pages[0].name, "p01.png")
+        self.assertEqual(pages[-1].name, "p12.png")
+        self.assertEqual(
+            sorted(p.name for p in (self.tmp / "out").glob("*.png")),
+            [p.name for p in pages],
+        )
 
     def test_small_pdf_keeps_two_digit_padding(self) -> None:
         pdf = _make_pdf(self.tmp / "tiny.pdf", 3)

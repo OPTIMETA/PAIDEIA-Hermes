@@ -77,9 +77,21 @@ This skill assumes `/paideia ingest` and `/paideia analyze` have been run. If `c
 
 Read-only. Filter `course-index/patterns.md` by the query and return compact pattern cards.
 
-### `/paideia hwmap [§ or "blind"]`
+### `/paideia hwmap [§ or "hot" or "all"]`
 
-Read-only. Project `course-index/coverage.md` by the query. `blind` lists all 🔴 and 🔴🔴 entries with drill recommendations.
+Read-only. Project `course-index/coverage.md` by the query.
+
+`hot` (the main query) ranks 🔥🔥 Exam-primary and 🔥 Exam-likely sections by HW
+density, each with a drill recommendation. It does **not** list 🔴 blind spots —
+that would invert the targeting philosophy above, where a section with no HW is
+the professor's signal that it is off the exam, not a hazard. `blind` is accepted
+as a legacy alias for `hot` and returns the same exam-hot ranking. See
+`commands/hwmap.md`, which is authoritative for this command.
+
+Note the two separate marker vocabularies defined in `commands/analyze.md`:
+exam tier is 🔥🔥/🔥/🟡/⚪, coverage strength is ✅✅/✅/🟡/🔴/🔴🔴. Only the
+🔴🔴 Critical Blind tier (no coverage *and* inside a user-declared weak zone)
+is worth surfacing as a risk on its own.
 
 ## Twin recipe (invariance rules)
 
@@ -121,7 +133,7 @@ This is the **same canonical schema** as `skills/paideia-answer-processing/SKILL
 - `/paideia grade` → loads `answer-processing` skill (PDF → MD → compare with `converted/solutions/`).
 - `/paideia ingest` or `/paideia analyze` → loads `course-builder` skill.
 - Any PDF read/write → loads `pdf` skill.
-- All drill outputs (twins/, chain/, quizzes/) use plain markdown — no PDF creation inside drill commands. The user uploads answer PDFs; Claude doesn't make PDFs during drilling.
+- All drill outputs (`twins/`, `chain/`, `quizzes/`, `mock/`, `derivations/`) are plain markdown. Drilling never produces a PDF: PDFs travel in one direction only, from the user's scanned paper into `answers/`. The single exception is `/paideia cheatsheet --pdf`, which is a study aid rather than a drill and deliberately renders `cheatsheet/final.md` to print.
 
 ## Prose conventions
 

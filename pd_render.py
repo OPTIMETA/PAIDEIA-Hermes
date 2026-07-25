@@ -118,10 +118,19 @@ def render_pdf_pages(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     total = page_count(pdf_path)
-    width = max(2, len(str(total))) if total > 0 else 3
+    if total > 0:
+        pages = iter_pages(pdf_path, dpi=dpi, total=total)
+    else:
+        # poppler couldn't report a count. Decode once — memory is the price of
+        # not knowing — but count first, because guessing the padding width is
+        # how p1000.png ends up sorting before p999.png.
+        images = _pdf2image().convert_from_path(str(pdf_path), dpi=dpi)
+        total = len(images)
+        pages = enumerate(images, 1)
+    width = max(2, len(str(total)))
 
     out: list[Path] = []
-    for i, img in iter_pages(pdf_path, dpi=dpi, total=total):
+    for i, img in pages:
         dest = out_dir / f"p{i:0{width}d}.png"
         _fit(img, max_px).save(dest, format="PNG", optimize=True)
         out.append(dest)

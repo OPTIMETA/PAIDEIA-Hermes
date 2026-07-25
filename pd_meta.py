@@ -43,6 +43,13 @@ def atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> Path
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    # mkstemp() hardcodes 0600. Carry the existing file's mode across a rewrite,
+    # and use the ordinary 0644 for a new one, so switching to an atomic write
+    # doesn't quietly narrow permissions on files the user may share or serve.
+    try:
+        mode = path.stat().st_mode & 0o777
+    except OSError:
+        mode = 0o644
     fd, tmp = tempfile.mkstemp(
         dir=str(path.parent), prefix=f".{path.name}.", suffix=".tmp"
     )
@@ -51,6 +58,7 @@ def atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> Path
             fh.write(text)
             fh.flush()
             os.fsync(fh.fileno())
+        os.chmod(tmp, mode)
         os.replace(tmp, path)
     except BaseException:
         try:

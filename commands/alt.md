@@ -21,7 +21,7 @@ HW density stays the primary exam-tier signal. Lecture emphasis is layered on as
 
 1. If `the arguments provided above` contains the export (look for `<!-- exam-radar:v1`), use it.
 2. Else if `materials/radar.md` exists, read that.
-3. Else: tell the user — "Exam Radar에서 **학습 로드맵 → 복사** 후 `/paideia alt` 뒤에 붙여넣거나, `materials/radar.md`로 저장하세요." — then stop.
+3. Else: tell the user (in `INTERFACE_LANG`) to hit **학습 로드맵 → 복사** in Exam Radar and either paste the result after `/paideia alt` or save it to `materials/radar.md` — then stop. Keep the Exam Radar button label `학습 로드맵 → 복사` verbatim in either language; it is what the user sees on screen.
 4. Validate the marker. No `<!-- exam-radar:v1` → not an Exam Radar export; stop. Version `> 1` → warn that this command parses v1 and may ignore new fields, then proceed best-effort.
 
 ## Pipeline

@@ -1,6 +1,6 @@
 ---
 name: paideia-vision-ocr
-description: Use whenever a hand-written or scanned answer PDF needs transcription to markdown for /paideia grade. Three tiers — the model's native vision (default, no extra install), local Qwen3-VL 8B via ollama (opt-in privacy mode), pytesseract fallback. The engine is selected via `OCR_ENGINE` in `.course-meta` (written by /paideia init-course) and can be overridden per-call with `/paideia grade --ocr=<engine>`.
+description: Use whenever a hand-written or scanned answer PDF needs transcription to markdown for /paideia grade. Three tiers — the model's native vision (default, no extra install), local Qwen3-VL 8B via ollama (opt-in privacy mode), pytesseract fallback. The engine is selected via `OCR_ENGINE` in `.course-meta` (written by /paideia init) and can be overridden per-call with `/paideia grade --ocr=<engine>`.
 ---
 
 # Vision-OCR
@@ -13,7 +13,7 @@ description: Use whenever a hand-written or scanned answer PDF needs transcripti
 
 ## Engine choice
 
-`.course-meta` holds a single line `OCR_ENGINE: <engine>` written by `/paideia init-course`. The grade command reads it and dispatches. Users can override per-call with `/paideia grade --ocr=<engine> [path]`.
+`.course-meta` holds a single line `OCR_ENGINE: <engine>` written by `/paideia init`. The grade command reads it and dispatches. Users can override per-call with `/paideia grade --ocr=<engine> [path]`.
 
 | Engine | Default? | How it runs | When to pick it |
 |---|---|---|---|
