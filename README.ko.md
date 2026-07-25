@@ -175,7 +175,9 @@ git clone https://github.com/OPTIMETA/PAIDEIA-Hermes && ./PAIDEIA-Hermes/install
 /paideia init name="복소해석 MATH 405" exam=2026-12-15 type=final lang=ko ocr=claude weak="등각적분"
 ```
 
-의존성을 점검하고, 인터페이스 언어 `en|ko`와 `COURSE_NAME`·`EXAM_DATE`·`EXAM_TYPE`·`USER_WEAK_ZONES`, OCR 엔진을 (인자로든 물어서든) 받은 다음, 디렉터리 골격과 `.course-meta`·`PAIDEIA.md`를 만들고 `errors/log.md`를 깔아 둡니다. 채점 한 번만 엔진을 바꾸려면 `/paideia grade --ocr=claude path/to/answer.pdf`처럼 덮어쓰세요.
+어느 쪽이든 받는 항목은 같습니다. 인터페이스 언어 `en|ko`와 `COURSE_NAME`·`EXAM_DATE`·`EXAM_TYPE`·`USER_WEAK_ZONES`, 그리고 OCR 엔진이고요. 뒷일도 같은 코드가 처리합니다. 디렉터리 골격, `.course-meta`, 과목용 `PAIDEIA.md`, 큰 스캔본을 git 밖으로 빼 두는 `.gitignore`, 그리고 깔아 둔 `errors/log.md`까지요. `exam=` 날짜가 형식에 안 맞으면 만들지 않고 거절합니다. D-N이 끝내 안 뜨는 과목 폴더를 받아 봐야 눈치챌 방법이 없으니까요.
+
+의존성 점검은 마법사 쪽에서만 먼저 돕니다. 한 줄로 만들었다면 `/paideia doctor`를 직접 한 번 돌려 주세요. 채점 한 번만 엔진을 바꾸려면 `/paideia grade --ocr=claude path/to/answer.pdf`처럼 덮어쓰세요.
 
 ---
 

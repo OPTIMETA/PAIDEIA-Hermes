@@ -175,7 +175,9 @@ Open hermes inside the folder you want to use for this course, then either run t
 /paideia init name="Complex Analysis MATH 405" exam=2026-12-15 type=final lang=en ocr=claude weak="contour integration"
 ```
 
-This checks deps, asks (or takes as args) interface language `en|ko`, `COURSE_NAME`, `EXAM_DATE`, `EXAM_TYPE`, `USER_WEAK_ZONES`, and the OCR engine, then creates the directory skeleton, writes `.course-meta` + a project `PAIDEIA.md`, and seeds `errors/log.md`. Override the OCR engine for a single grade with `/paideia grade --ocr=claude path/to/answer.pdf`.
+Either form collects the same six fields — interface language `en|ko`, `COURSE_NAME`, `EXAM_DATE`, `EXAM_TYPE`, `USER_WEAK_ZONES`, and the OCR engine — and both run the same scaffolding: the directory skeleton, `.course-meta`, a project `PAIDEIA.md`, a `.gitignore` that keeps bulky scans out of git, and a seeded `errors/log.md`. A malformed `exam=` date is rejected rather than scaffolded, since a course whose countdown never appears gives you nothing to notice.
+
+The wizard also runs a dependency check first; after the one-liner, run `/paideia doctor` yourself. Override the OCR engine for a single grade with `/paideia grade --ocr=claude path/to/answer.pdf`.
 
 ---
 
