@@ -81,9 +81,10 @@ def build_prompt(course: str | None = None, lang: str | None = None) -> str:
 
 
 # Byte-identical copy of pd_meta._META_COMMENT_RX (this module stays standalone
-# so the agent can run it from any cwd). A bare `#` split would read
-# `COURSE_NAME: C# Programming` as `C`; tests/ pins every copy to one behaviour.
-_META_COMMENT_RX = re.compile(r"(?:^|\s)#")
+# so the agent can run it from any cwd). Looser splits eat real text: a bare `#`
+# reads `COURSE_NAME: C# Programming` as `C`, and a single space reads
+# `Complex Analysis #2` as `Complex Analysis`. tests/ pins every copy.
+_META_COMMENT_RX = re.compile(r"(?:^|\t|[ ]{2,})#")
 
 
 def read_course_name(cwd: Path | None = None) -> str | None:

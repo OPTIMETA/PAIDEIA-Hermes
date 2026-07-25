@@ -314,9 +314,14 @@ class TestAtomicMeta(TempCourse):
         self.assertIn("1999-01-01", meta["COURSE_NAME"])   # kept, not lost
 
     def test_hash_inside_a_value_is_not_a_comment(self) -> None:
-        """`COURSE_NAME: C# Programming` must not parse as `C`."""
+        """Only the documented `value  # note` form is a comment.
+
+        Looser rules eat real text: a bare `#` turns `C# Programming` into `C`,
+        and a single space turns `Complex Analysis #2` into `Complex Analysis`.
+        """
         cases = {
             "C# Programming": "C# Programming",
+            "Complex Analysis #2": "Complex Analysis #2",
             "Complex Analysis  # main course": "Complex Analysis",
             "Complex Analysis\t# note": "Complex Analysis",
             "# just a comment": "",
@@ -324,6 +329,23 @@ class TestAtomicMeta(TempCourse):
         }
         for raw, expected in cases.items():
             self.assertEqual(pd_meta.strip_comment(raw), expected, f"input {raw!r}")
+
+    def test_meta_write_read_is_lossless(self) -> None:
+        """Whatever write_meta stores, parse_meta must hand back unchanged.
+
+        _flatten collapses whitespace runs to one space, so a written value can
+        never come back looking like a comment — that is what makes the comment
+        threshold safe rather than merely lucky.
+        """
+        values = [
+            "Complex Analysis #2", "C# Programming", "Physics I — §3 #a",
+            "미적분학 #2 (심화)", "a  b   c", "x#y#z", "trailing space ",
+        ]
+        for v in values:
+            pd_meta.write_meta(self.cwd, {"COURSE_NAME": v, "EXAM_DATE": "2099-01-01"})
+            got = pd_meta.parse_meta(self.cwd)["COURSE_NAME"]
+            self.assertEqual(got, pd_meta._flatten(v), f"round-trip lost {v!r}")
+            self.assertNotIn("  ", got, "a written value could be misread as a comment")
 
     def test_all_three_meta_parsers_agree(self) -> None:
         """pd_doctor and pd_vision_ocr keep standalone copies of the comment rule."""

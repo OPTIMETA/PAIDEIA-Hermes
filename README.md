@@ -186,6 +186,9 @@ After `/paideia init`, your course folder looks like this:
 ```
 my-course/
 ├── .course-meta                     # course name, exam date, interface language (en|ko), OCR engine
+│                                    #   one KEY: value per line, safe to hand-edit;
+│                                    #   a `# comment` needs two spaces before it,
+│                                    #   so `Complex Analysis #2` stays a course name
 ├── PAIDEIA.md                       # per-course workflow context the agent reads
 ├── .gitignore                       # hides raw PDF scans + OCR scratch; the study graph itself stays committed
 │

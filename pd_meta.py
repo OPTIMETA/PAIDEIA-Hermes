@@ -29,11 +29,16 @@ VALID_OCR = ("claude", "ollama", "tesseract")
 VALID_LANG = ("en", "ko")
 
 _META_LINE_RX = re.compile(r"^\s*([A-Z_][A-Z0-9_]*)\s*:\s*(.+?)\s*$")
-# A trailing comment must be introduced by whitespace (or start the value).
-# Splitting on a bare `#` would turn `COURSE_NAME: C# Programming` into `C`.
+# A trailing comment must start the value, or be introduced by a tab or two or
+# more spaces. That exact threshold is what makes write→read lossless: _flatten()
+# collapses every whitespace run to a single space, so a value this module writes
+# can never come back looking like a comment. Anything looser silently eats real
+# text — a bare `#` turns `C# Programming` into `C`, and a single space turns
+# `Complex Analysis #2` into `Complex Analysis`. Hand-written comments keep the
+# documented `NAME: value  # note` form.
 # pd_doctor.py and pd_vision_ocr.py keep byte-identical copies of this pattern
 # so they can run standalone; tests/ pins all three to the same behaviour.
-_META_COMMENT_RX = re.compile(r"(?:^|\s)#")
+_META_COMMENT_RX = re.compile(r"(?:^|\t|[ ]{2,})#")
 
 
 def strip_comment(value: str) -> str:

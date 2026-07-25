@@ -186,6 +186,9 @@ git clone https://github.com/OPTIMETA/PAIDEIA-Hermes && ./PAIDEIA-Hermes/install
 ```
 my-course/
 ├── .course-meta                     # 과목명, 시험일, 인터페이스 언어(en|ko), OCR 엔진
+│                                    #   한 줄에 KEY: value 하나, 직접 고쳐도 된다.
+│                                    #   `# 주석`은 앞에 공백 두 칸이 있어야 주석이라
+│                                    #   `Complex Analysis #2`는 그대로 과목명이 된다
 ├── PAIDEIA.md                       # 에이전트가 읽는 과목별 워크플로 메모
 ├── .gitignore                       # 원본 스캔·OCR 임시물만 숨기고, 학습 그래프 본체는 커밋
 │

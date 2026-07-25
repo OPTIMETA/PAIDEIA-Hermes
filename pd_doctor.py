@@ -113,9 +113,10 @@ def _parse_meta(cwd: Path) -> dict[str, str]:
         return meta
     rx = re.compile(r"^\s*([A-Z_][A-Z0-9_]*)\s*:\s*(.+?)\s*$")
     # Byte-identical copy of pd_meta._META_COMMENT_RX (this module stays
-    # standalone). A bare `#` split would read `COURSE_NAME: C# Programming` as
-    # `C`; tests/ pins every copy to the same behaviour.
-    comment_rx = re.compile(r"(?:^|\s)#")
+    # standalone). Looser splits eat real text: a bare `#` reads
+    # `COURSE_NAME: C# Programming` as `C`, and a single space reads
+    # `Complex Analysis #2` as `Complex Analysis`. tests/ pins every copy.
+    comment_rx = re.compile(r"(?:^|\t|[ ]{2,})#")
     try:
         for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
             m = rx.match(line)

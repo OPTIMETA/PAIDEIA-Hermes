@@ -48,7 +48,10 @@ Ambiguous location (e.g., a PDF in `materials/` root)? Ask user once to categori
 2. Render each PDF into `converted/<category>/_pages/<stem>/` with
    `python3 "${PAIDEIA_PLUGIN_ROOT}/pd_render.py" <pdf> <out_dir>` — one
    streaming pass that rasterizes at `dpi=160` and caps every page at 1800 px.
-3. Resize all rendered PNGs to ≤1800 px on the long edge **before** any agent starts reading — this is the hard 2000 px many-image limit; violating it wastes entire agent runs.
+3. No separate resize pass — step 2 caps every page as it writes it, so an
+   oversized PNG never reaches disk. This matters because the 2000 px many-image
+   limit is hard: an agent that reads an oversized page has already pulled it
+   into context and its entire run is wasted.
 4. Spawn one parallel `general-purpose` agent per PDF. Each agent reads its own pages **sequentially** (not in parallel batches — same dimension limit) and transcribes to clean LaTeX markdown (`$...$` / `$$...$$`). Unreadable symbols get `[?]`.
 5. Write `converted/<category>/<stem>.md` with provenance: `<!-- SOURCE: materials/<category>/<stem>.pdf, extracted <YYYY-MM-DD>, method: vision -->`.
 6. After all agents finish, delete the `_pages/` scratch dirs.

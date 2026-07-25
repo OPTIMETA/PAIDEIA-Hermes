@@ -79,6 +79,12 @@ directory skeleton (`materials/…`, `converted/…`, `course-index/`, `quizzes/
 It rejects a malformed `exam=` date instead of scaffolding a course whose
 countdown silently never appears — if it does, re-ask question 2 and retry.
 
+`.course-meta` is safe to hand-edit later. It is one `KEY: value` per line, and
+a trailing comment must be introduced by **two or more spaces** (or a tab):
+`COURSE_NAME: Complex Analysis  # main course`. A single space is kept as part of
+the value, so `COURSE_NAME: Complex Analysis #2` is a course literally named
+"Complex Analysis #2" — that threshold is what lets a `#` appear in a name at all.
+
 Then run `/paideia doctor` and relay the report to confirm the result.
 
 Optionally `git init && git add -A && git commit -m "paideia: initial setup"`

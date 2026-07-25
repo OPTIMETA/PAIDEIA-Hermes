@@ -75,6 +75,11 @@ for i, image in enumerate(images):
 
 For best OCR quality on math/physics hand-writing, use `dpi=300` and consider preprocessing (deskew, binarize) with opencv before OCR.
 
+The snippet above holds every page in memory at once, which is fine for the
+handful-of-pages ad-hoc case it exists for. For anything long — and for all
+in-plugin work — page one at a time with `first_page=i, last_page=i`, the way
+`${PAIDEIA_PLUGIN_ROOT}/pd_render.py` and `pd_vision_ocr.py` do.
+
 ### Command-line text extraction (fast path)
 
 ```bash
@@ -147,7 +152,7 @@ When converting PDF materials to markdown for this project:
 - **Unicode subscript/superscript in reportlab** → renders as solid black boxes. Use `<sub>`/`<super>` XML tags instead.
 - **Protected PDFs** → `qpdf --password=... --decrypt in.pdf out.pdf` first.
 - **Multi-column academic PDFs** → pdfplumber's default extraction interleaves columns. Use `page.extract_text(layout=True)` or crop bboxes per column.
-- **Image-heavy scans** → `convert_from_path` uses a lot of memory. Set `dpi=150` for first pass, re-run at 300 only if OCR quality is poor.
+- **Image-heavy scans** → `convert_from_path` without `first_page`/`last_page` decodes the whole PDF into memory at once (a 120-page chapter at `dpi=160` peaks around 3 GB). Render one page per call instead; that fixes the cause and costs no quality. Dropping the DPI also lowers memory, but it degrades the transcription — reach for it only if a page is still too large on its own. Inside this plugin, use `${PAIDEIA_PLUGIN_ROOT}/pd_render.py`, which already streams.
 
 ## Dependencies
 
