@@ -29,6 +29,26 @@ VALID_OCR = ("claude", "ollama", "tesseract")
 VALID_LANG = ("en", "ko")
 
 _META_LINE_RX = re.compile(r"^\s*([A-Z_][A-Z0-9_]*)\s*:\s*(.+?)\s*$")
+# A trailing comment must be introduced by whitespace (or start the value).
+# Splitting on a bare `#` would turn `COURSE_NAME: C# Programming` into `C`.
+# pd_doctor.py and pd_vision_ocr.py keep byte-identical copies of this pattern
+# so they can run standalone; tests/ pins all three to the same behaviour.
+_META_COMMENT_RX = re.compile(r"(?:^|\s)#")
+
+
+def strip_comment(value: str) -> str:
+    """Drop a trailing ``# comment`` from a ``.course-meta`` value."""
+    return _META_COMMENT_RX.split(value, maxsplit=1)[0].strip()
+
+
+def _flatten(value: object) -> str:
+    """Collapse a value to one line so it can't forge extra ``KEY: value`` rows.
+
+    ``.course-meta`` is line-oriented, so a newline inside a value would write a
+    second key the reader treats as real — silently truncating the intended value
+    and, depending on order, overriding a later canonical key.
+    """
+    return re.sub(r"\s+", " ", str(value).replace("\x00", "")).strip()
 
 
 def atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> Path:
@@ -81,7 +101,7 @@ def parse_meta(cwd: Path) -> dict[str, str]:
             if m:
                 # Strip a trailing `# comment` so a hand-edited
                 # `COURSE_NAME: Complex Analysis  # main` doesn't leak the note.
-                meta[m.group(1)] = m.group(2).split("#", 1)[0].strip()
+                meta[m.group(1)] = strip_comment(m.group(2))
     except OSError:
         pass
     return meta
@@ -95,10 +115,10 @@ def write_meta(cwd: Path, meta: dict[str, str]) -> Path:
     """
     lines: list[str] = []
     for k in META_KEYS:
-        lines.append(f"{k}: {meta.get(k, '').strip()}")
+        lines.append(f"{k}: {_flatten(meta.get(k, ''))}")
     for k, v in meta.items():
         if k not in META_KEYS:
-            lines.append(f"{k}: {str(v).strip()}")
+            lines.append(f"{_flatten(k)}: {_flatten(v)}")
     return atomic_write_text(Path(cwd) / ".course-meta", "\n".join(lines) + "\n")
 
 

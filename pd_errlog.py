@@ -65,6 +65,16 @@ def top_pattern(cwd: Path) -> str | None:
 _CTRL_RX = re.compile(r"[\x00-\x1f\x7f]+")
 # Chars that flip a plain YAML scalar into some other node type when leading.
 _PLAIN_LEAD = "\"'&*!|>%@`-?,[]{}#"
+# Bare tokens YAML resolves to something that is not a string. `=` is the sharp
+# one: it carries the yaml.org,2002:value tag and makes SafeLoader *raise*,
+# taking the whole log down with it. `~`/`null` silently become None. None of
+# them carry usable identifier information, so they degrade to the same
+# placeholder an all-punctuation value gets.
+#
+# Number- and boolean-shaped tokens (`3`, `no`) are deliberately left alone:
+# they parse cleanly, `problem_id: 3` is a realistic entry, and every reader in
+# this plugin matches the raw text rather than the resolved type.
+_YAML_DEGENERATE = frozenset({"=", "~", "null", "Null", "NULL"})
 
 
 def _yaml_plain(s: str) -> str:
@@ -79,7 +89,16 @@ def _yaml_plain(s: str) -> str:
     s = re.sub(r"\s+", " ", s).strip()
     s = re.sub(r":(?=\s|$)", "-", s)      # `: ` (and a trailing `:`) ends the scalar
     s = re.sub(r"(?<=\s)#", "", s)        # ` #` starts a trailing comment
-    return s.lstrip(_PLAIN_LEAD).strip() or "unknown"
+    # Alternate until stable. A single lstrip-then-strip is not enough: given
+    # "' [x", it removes the quote, halts at the space, and the trailing strip
+    # then re-exposes "[" as the new first character.
+    prev = None
+    while prev != s:
+        prev = s
+        s = s.lstrip(_PLAIN_LEAD).strip()
+    if not s or s in _YAML_DEGENERATE:
+        return "unknown"
+    return s
 
 
 def _yaml_quoted(s: str) -> str:

@@ -48,6 +48,10 @@ def render_banner(cwd: Path) -> str | None:
     cwd = Path(cwd)
     meta = pd_meta.parse_meta(cwd)
     if not meta:
+        # Silent outside a course, but never silent *inside a broken* one — a
+        # missing banner is how this failure would otherwise present itself.
+        if (cwd / ".course-meta").exists():
+            return "[paideia] .course-meta is present but unreadable — /paideia doctor"
         return None
 
     name = meta.get("COURSE_NAME", "course")

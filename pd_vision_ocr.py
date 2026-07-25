@@ -80,6 +80,12 @@ def build_prompt(course: str | None = None, lang: str | None = None) -> str:
     return PROMPT_TEMPLATE.format(course=course_text, prose_rule=_PROSE_RULE[lang_key])
 
 
+# Byte-identical copy of pd_meta._META_COMMENT_RX (this module stays standalone
+# so the agent can run it from any cwd). A bare `#` split would read
+# `COURSE_NAME: C# Programming` as `C`; tests/ pins every copy to one behaviour.
+_META_COMMENT_RX = re.compile(r"(?:^|\s)#")
+
+
 def read_course_name(cwd: Path | None = None) -> str | None:
     cwd = cwd or Path.cwd()
     meta_path = cwd / ".course-meta"
@@ -89,7 +95,7 @@ def read_course_name(cwd: Path | None = None) -> str | None:
         for line in meta_path.read_text(encoding="utf-8", errors="replace").splitlines():
             m = re.match(r"^\s*COURSE_NAME\s*:\s*(.+?)\s*$", line)
             if m:
-                return m.group(1).split("#", 1)[0].strip() or None
+                return _META_COMMENT_RX.split(m.group(1), maxsplit=1)[0].strip() or None
     except OSError:
         pass
     return None
@@ -104,7 +110,7 @@ def read_interface_lang(cwd: Path | None = None) -> str:
         for line in meta_path.read_text(encoding="utf-8", errors="replace").splitlines():
             m = re.match(r"^\s*INTERFACE_LANG\s*:\s*(.+?)\s*$", line)
             if m:
-                v = m.group(1).split("#", 1)[0].strip().lower()
+                v = _META_COMMENT_RX.split(m.group(1), maxsplit=1)[0].strip().lower()
                 if v in _PROSE_RULE:
                     return v
     except OSError:

@@ -112,11 +112,15 @@ def _parse_meta(cwd: Path) -> dict[str, str]:
     if not p.exists():
         return meta
     rx = re.compile(r"^\s*([A-Z_][A-Z0-9_]*)\s*:\s*(.+?)\s*$")
+    # Byte-identical copy of pd_meta._META_COMMENT_RX (this module stays
+    # standalone). A bare `#` split would read `COURSE_NAME: C# Programming` as
+    # `C`; tests/ pins every copy to the same behaviour.
+    comment_rx = re.compile(r"(?:^|\s)#")
     try:
         for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
             m = rx.match(line)
             if m:
-                meta[m.group(1)] = m.group(2).split("#", 1)[0].strip()
+                meta[m.group(1)] = comment_rx.split(m.group(2), maxsplit=1)[0].strip()
     except OSError:
         pass
     return meta
@@ -156,7 +160,12 @@ def run(cwd: Path, fix: bool = False) -> tuple[int, str]:
     cwd = Path(cwd)
     r = Report()
     meta = _parse_meta(cwd)
-    course_mode = bool(meta)
+    # Keyed on the file existing, not on it parsing. A `.course-meta` that is
+    # present but empty is a *broken* course, and skipping the workspace checks
+    # there means doctor answers "all clear" about exactly the folder it was run
+    # to diagnose — while /paideia status calls it "not a course folder" and the
+    # LLM subcommands go ahead and run.
+    course_mode = (cwd / ".course-meta").exists()
     ocr_engine = meta.get("OCR_ENGINE", "claude").strip().lower()
     lang = meta.get("INTERFACE_LANG", "en").strip().lower()
 
@@ -225,6 +234,11 @@ def run(cwd: Path, fix: bool = False) -> tuple[int, str]:
 
     # --- workspace (course mode only) ---
     if course_mode:
+        if not meta:
+            r.add(FAIL, "meta:.course-meta",
+                  "present but has no readable KEY: value lines — restore it or "
+                  "re-run `/paideia init name=… exam=YYYY-MM-DD`")
+
         missing = [d for d in SKELETON if not (cwd / d).is_dir()]
         if missing and fix:
             for d in missing:

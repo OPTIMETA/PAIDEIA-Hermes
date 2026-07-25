@@ -7,7 +7,7 @@ All notable changes to PAIDEIA-Hermes. Versions follow the `plugin.yaml`
 
 Correctness and robustness pass over the whole plugin. No workflow changes: the
 same commands produce the same artifacts in the same places. Every fix below is
-covered by `tests/` (65 tests, stdlib only — `./tests/run.sh`).
+covered by `tests/` (84 tests, stdlib only — `./tests/run.sh`).
 
 ### Fixed — data integrity
 
@@ -18,6 +18,19 @@ covered by `tests/` (65 tests, stdlib only — `./tests/run.sh`).
   it. Backslashes and quotes are now escaped; `problem_id`/`pattern`/
   `error_type`/`source` stay unquoted plain scalars so `PATTERN_RX` keeps
   matching them, with colons and `#` sanitized instead.
+  Two follow-on holes in the same sanitizer, both found by the seeded fuzz added
+  alongside it: stripping YAML indicators before trimming whitespace re-exposed
+  the next one (`"' [x"` → `[x`, which reopens the crash), and a bare `=` carries
+  YAML's `value` tag, which makes a strict loader raise on the *file* rather than
+  the entry. 6000 fuzzed entries now round-trip.
+- **A newline in a `.course-meta` value can no longer forge a key.** The file is
+  line-oriented, so `weak="x\nEXAM_DATE: 1999-01-01"` wrote a second key the
+  reader treated as real while silently truncating the intended value. Values are
+  flattened to one line on write.
+- **`COURSE_NAME: C# Programming` no longer parses as `C`.** A trailing comment
+  now has to be introduced by whitespace, in all three parsers that keep
+  standalone copies of the rule (`pd_meta`, `pd_doctor`, `pd_vision_ocr`) — with
+  a test pinning them to identical behaviour.
 - **Korean OCR output is written as UTF-8.** `pd_vision_ocr.py` wrote its
   transcription with no explicit encoding, falling back to the locale encoding —
   mojibake or a hard failure under a C/POSIX locale.
@@ -49,7 +62,6 @@ covered by `tests/` (65 tests, stdlib only — `./tests/run.sh`).
   `p100.png` between `p10.png` and `p11.png`, and agents read pages in sorted
   order — a 100+ page chapter (ordinary for a textbook) was transcribed in
   scrambled sequence with nothing to signal it. Now `p001.png … p120.png`.
-
 - **PDF page numbering is correct even when poppler can't count.** The
   fallback path (no usable `pdfinfo`) guessed a 3-wide pad, reintroducing the
   `p1000` / `p999` ordering bug it was meant to fix past 999 pages. It now
@@ -58,6 +70,16 @@ covered by `tests/` (65 tests, stdlib only — `./tests/run.sh`).
   moving to temp-file-plus-rename silently made `.course-meta`, `.gitignore` and
   `PAIDEIA.md` owner-only. Existing modes are carried across a rewrite; new
   files get `0644`.
+
+### Fixed — a broken course now reads as broken everywhere
+
+A `.course-meta` that exists but parses to nothing left the four surfaces
+disagreeing: `is_course()` said yes so the LLM subcommands ran, `/paideia status`
+said "not a course folder — run `/paideia init` here" (which would have
+overwritten the remains), the session banner went silent, and `/paideia doctor` —
+the tool you run to diagnose exactly this — reported **all clear** while skipping
+every workspace check. All four now agree it is a broken course and point at
+`doctor`, which fails with a specific reason and still repairs what `--fix` can.
 
 ### Fixed — contradictions between specs and code
 
@@ -98,7 +120,7 @@ covered by `tests/` (65 tests, stdlib only — `./tests/run.sh`).
 
 ### Added
 
-- **`tests/`** — 71 stdlib-only tests, no pytest and no install step
+- **`tests/`** — 84 stdlib-only tests, no pytest and no install step
   (`./tests/run.sh`). Includes contract tests that pin `pd_doctor`'s deliberate
   standalone copies of `SKELETON`/`META_KEYS`/the errors seed to their sources,
   assert every LLM subcommand has both a command spec and a skill that exists on

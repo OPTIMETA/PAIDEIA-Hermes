@@ -52,6 +52,11 @@ def render_status(cwd: Path) -> str:
     cwd = Path(cwd)
     meta = pd_meta.parse_meta(cwd)
     if not meta:
+        # Distinguish the two cases: a missing .course-meta means this simply
+        # isn't a course, but a present-but-unreadable one is a broken course —
+        # and telling the user to `init` there would overwrite what's left.
+        if (cwd / ".course-meta").exists():
+            return "paideia · (.course-meta unreadable — run `/paideia doctor`)"
         return "paideia · (not a course folder — run `/paideia init` here)"
     name = _truncate(meta.get("COURSE_NAME", "course") or "course")
     days = pd_meta.days_until(meta.get("EXAM_DATE", ""))

@@ -22,7 +22,9 @@ import importlib
 import importlib.util
 import io
 import os
+import random
 import shutil
+import string
 import sys
 import tempfile
 import types
@@ -166,6 +168,77 @@ class TestErrorLogYAML(TempCourse):
         self.assertEqual(pd_errlog.pattern_counts(pd_errlog.read_errors(self.cwd)), {"P1": 3})
 
 
+class TestFuzz(TempCourse):
+    """Seeded fuzz over the three surfaces that take arbitrary user text.
+
+    Course names, error summaries and problem IDs are free-form and routinely
+    carry LaTeX, CJK and emoji. These assert the invariants hold across that
+    whole space, not just the handful of cases the targeted tests name.
+    """
+
+    ALPHABET = string.printable + "한글수식∫∑🔥🟡⚪"
+    N = 120
+
+    def _rand(self, rng, n: int) -> str:
+        return "".join(rng.choice(self.ALPHABET) for _ in range(rng.randint(0, n)))
+
+    def test_dispatch_never_raises_on_arbitrary_input(self) -> None:
+        rng = random.Random(7)
+        cwd = os.getcwd()
+        os.chdir(self.cwd)
+        try:
+            for _ in range(self.N):
+                raw = self._rand(rng, 60)
+                self.assertIsInstance(pd_commands.dispatch(raw), str, repr(raw))
+        finally:
+            os.chdir(cwd)
+
+    def test_error_log_stays_valid_yaml_under_fuzz(self) -> None:
+        yaml = _require_yaml()
+        for seed in range(8):          # several seeds: one corpus misses too much
+            course = self.cwd / f"c{seed}"
+            course.mkdir()
+            rng = random.Random(seed)
+            for i in range(self.N // 4):
+                pd_errlog.append_error(
+                    course,
+                    problem_id=self._rand(rng, 20) or "x",
+                    pattern=f"P{i % 9 + 1}",
+                    error_type=rng.choice(pd_errlog.ERROR_TYPES),
+                    summary=self._rand(rng, 120),
+                    source=self._rand(rng, 40) or "s.md",
+                )
+            text = pd_errlog.read_errors(course)
+            entries = yaml.safe_load(text.split("-->", 1)[1])
+            self.assertEqual(len(entries), self.N // 4,
+                             f"seed {seed}: an entry was swallowed or merged")
+            # The plain-scalar choice only pays off if PATTERN_RX still sees them.
+            self.assertEqual(sum(pd_errlog.pattern_counts(text).values()), self.N // 4,
+                             f"seed {seed}: PATTERN_RX lost an entry")
+
+    def test_degenerate_yaml_tokens_are_neutralized(self) -> None:
+        """`=` carries YAML's value tag and makes SafeLoader raise on the whole file."""
+        for token in ("=", "~", "null", "NULL", "   ", "'''", "[[["):
+            self.assertEqual(pd_errlog._yaml_plain(token), "unknown", f"token {token!r}")
+        # Number- and boolean-shaped IDs are realistic and left intact.
+        for token in ("3", "no", "hw4-p3"):
+            self.assertEqual(pd_errlog._yaml_plain(token), token)
+
+    def test_a_special_char_behind_whitespace_is_still_stripped(self) -> None:
+        """lstrip-then-strip halts at the space and re-exposes the next indicator."""
+        self.assertEqual(pd_errlog._yaml_plain("'\n[`.\x0c>xD6"), ". >xD6")
+
+    def test_meta_values_never_forge_a_line(self) -> None:
+        rng = random.Random(13)
+        for _ in range(self.N):
+            pd_meta.write_meta(self.cwd, {k: self._rand(rng, 40) for k in pd_meta.META_KEYS})
+            raw = (self.cwd / ".course-meta").read_text(encoding="utf-8")
+            self.assertEqual(
+                len(raw.strip().splitlines()), len(pd_meta.META_KEYS),
+                "a value forged an extra KEY: value line",
+            )
+
+
 class TestAtomicMeta(TempCourse):
     def test_write_meta_is_atomic(self) -> None:
         """A failed write must leave the previous .course-meta intact.
@@ -217,6 +290,55 @@ class TestAtomicMeta(TempCourse):
         )
         self.assertEqual(pd_meta.parse_meta(self.cwd)["COURSE_NAME"], "Complex Analysis")
         self.assertEqual(pd_meta.read_lang(self.cwd), "ko")
+
+    def test_a_newline_in_a_value_cannot_forge_a_key(self) -> None:
+        """.course-meta is line-oriented; a value must stay on its line.
+
+        Otherwise `weak="x\\nEXAM_DATE: 1999-01-01"` writes a second key the
+        reader treats as real, and the intended value is silently truncated.
+        """
+        pd_meta.write_meta(self.cwd, {
+            "COURSE_NAME": "Real Analysis\nEXAM_DATE: 1999-01-01",
+            "EXAM_DATE": "2099-08-30",
+            "USER_WEAK_ZONES": "contours\r\nOCR_ENGINE: bogus",
+            "OCR_ENGINE": "claude",
+            "INTERFACE_LANG": "en",
+        })
+        raw = (self.cwd / ".course-meta").read_text(encoding="utf-8")
+        self.assertEqual(len(raw.strip().splitlines()), len(pd_meta.META_KEYS))
+
+        meta = pd_meta.parse_meta(self.cwd)
+        self.assertEqual(meta["EXAM_DATE"], "2099-08-30")
+        self.assertEqual(meta["OCR_ENGINE"], "claude")
+        self.assertIn("Real Analysis", meta["COURSE_NAME"])
+        self.assertIn("1999-01-01", meta["COURSE_NAME"])   # kept, not lost
+
+    def test_hash_inside_a_value_is_not_a_comment(self) -> None:
+        """`COURSE_NAME: C# Programming` must not parse as `C`."""
+        cases = {
+            "C# Programming": "C# Programming",
+            "Complex Analysis  # main course": "Complex Analysis",
+            "Complex Analysis\t# note": "Complex Analysis",
+            "# just a comment": "",
+            "Algebra": "Algebra",
+        }
+        for raw, expected in cases.items():
+            self.assertEqual(pd_meta.strip_comment(raw), expected, f"input {raw!r}")
+
+    def test_all_three_meta_parsers_agree(self) -> None:
+        """pd_doctor and pd_vision_ocr keep standalone copies of the comment rule."""
+        for raw, expected in (("C# Programming", "C# Programming"),
+                              ("Complex Analysis  # main", "Complex Analysis"),
+                              ("Algebra", "Algebra")):
+            (self.cwd / ".course-meta").write_text(
+                f"COURSE_NAME: {raw}\nINTERFACE_LANG: ko  # bilingual\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(pd_meta.parse_meta(self.cwd)["COURSE_NAME"], expected)
+            self.assertEqual(pd_doctor._parse_meta(self.cwd)["COURSE_NAME"], expected)
+            self.assertEqual(pd_vision_ocr.read_course_name(self.cwd), expected)
+            self.assertEqual(pd_meta.read_lang(self.cwd), "ko")
+            self.assertEqual(pd_vision_ocr.read_interface_lang(self.cwd), "ko")
 
     def test_invalid_enums_fall_back(self) -> None:
         pd_meta.write_meta(self.cwd, {"INTERFACE_LANG": "fr", "OCR_ENGINE": "gpt"})
@@ -634,6 +756,51 @@ class TestDoctorContracts(unittest.TestCase):
         code, report = pd_doctor.run(tmp, fix=False)
         self.assertIn("meta:OCR_ENGINE", report)
         self.assertEqual(code, 2)
+
+
+class TestBrokenCourseMeta(TempCourse):
+    """A present-but-unreadable .course-meta must not read as "no course".
+
+    All four surfaces used to disagree: is_course() said yes so the LLM
+    subcommands ran, status said "not a course folder — run /paideia init"
+    (which would overwrite the remains), the banner went silent, and doctor —
+    the tool you run to diagnose this — reported "all clear" while skipping
+    every workspace check.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        (self.cwd / ".course-meta").write_text("", encoding="utf-8")
+
+    def test_status_points_at_doctor_not_init(self) -> None:
+        line = pd_status.render_status(self.cwd)
+        self.assertIn("doctor", line)
+        self.assertNotIn("init", line)
+
+    def test_banner_is_not_silent(self) -> None:
+        banner = importlib.import_module("hermes_plugins.paideia.pd_banner")
+        text = banner.render_banner(self.cwd)
+        self.assertIsNotNone(text)
+        self.assertIn("doctor", text)
+
+    def test_doctor_fails_and_checks_the_workspace(self) -> None:
+        code, report = pd_doctor.run(self.cwd, fix=False)
+        self.assertEqual(code, 2, report)
+        self.assertIn("meta:.course-meta", report)
+        self.assertIn("workspace:", report)
+
+    def test_doctor_fix_still_repairs_what_it_can(self) -> None:
+        pd_doctor.run(self.cwd, fix=True)
+        self.assertTrue((self.cwd / "errors" / "log.md").is_file())
+        for rel in pd_doctor.SKELETON:
+            self.assertTrue((self.cwd / rel).is_dir(), f"--fix left {rel} missing")
+
+    def test_a_real_absence_still_reads_as_no_course(self) -> None:
+        (self.cwd / ".course-meta").unlink()
+        self.assertIn("not a course folder", pd_status.render_status(self.cwd))
+        banner = importlib.import_module("hermes_plugins.paideia.pd_banner")
+        self.assertIsNone(banner.render_banner(self.cwd))
+        self.assertLessEqual(pd_doctor.run(self.cwd)[0], 1)
 
 
 class TestBanner(TempCourse):
