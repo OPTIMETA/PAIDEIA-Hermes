@@ -7,7 +7,7 @@ All notable changes to PAIDEIA-Hermes. Versions follow the `plugin.yaml`
 
 Correctness and robustness pass over the whole plugin. No workflow changes: the
 same commands produce the same artifacts in the same places. Every fix below is
-covered by `tests/` (94 tests, stdlib only — `./tests/run.sh`).
+covered by `tests/` (95 tests, stdlib only — `./tests/run.sh`).
 
 ### Fixed — data integrity
 
@@ -128,7 +128,7 @@ every workspace check. All four now agree it is a broken course and point at
 
 ### Added
 
-- **`tests/`** — 94 stdlib-only tests, no pytest and no install step
+- **`tests/`** — 95 stdlib-only tests, no pytest and no install step
   (`./tests/run.sh`). Includes contract tests that pin `pd_doctor`'s deliberate
   standalone copies of `SKELETON`/`META_KEYS`/the errors seed to their sources,
   assert every LLM subcommand has both a command spec and a skill that exists on

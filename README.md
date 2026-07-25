@@ -390,7 +390,7 @@ PAIDEIA-Hermes/                     # == ~/.hermes/plugins/paideia/
 Run the tests before sending a patch — no install step, no pytest, no venv:
 
 ```bash
-./tests/run.sh          # 94 tests, ~35s
+./tests/run.sh          # 95 tests, ~32s
 ```
 
 They cover the deterministic engine end to end and pin the cross-file contracts

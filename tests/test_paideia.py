@@ -995,6 +995,17 @@ class TestRenderScripts(unittest.TestCase):
             with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
                 pd_render._parse_args(argv)
 
+    def test_non_numeric_flags_are_a_usage_error_not_a_traceback(self) -> None:
+        """Same contract as an unreadable PDF: the agent must get a reason."""
+        for argv in (["x", "--dpi=abc", "a.pdf", "out"],
+                     ["x", "--max-px=", "a.pdf", "out"],
+                     ["x", "--dpi=1.5", "a.pdf", "out"]):
+            err = io.StringIO()
+            with self.assertRaises(SystemExit) as cm, contextlib.redirect_stderr(err):
+                pd_render._parse_args(argv)
+            self.assertEqual(cm.exception.code, 2, argv)
+            self.assertIn("needs an integer", err.getvalue(), argv)
+
     def test_render_accepts_overrides(self) -> None:
         pdf, out, dpi, max_px = pd_render._parse_args(
             ["x", "--dpi=200", "--max-px=1200", "a.pdf", "out"]

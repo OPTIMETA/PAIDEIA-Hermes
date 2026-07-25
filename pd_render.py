@@ -137,13 +137,23 @@ def render_pdf_pages(
     return out
 
 
+def _int_flag(arg: str) -> int:
+    """Parse ``--name=<int>``, reporting a usage error rather than a traceback."""
+    name, _, raw = arg.partition("=")
+    try:
+        return int(raw)
+    except ValueError:
+        print(f"error: {name} needs an integer (got {raw!r})", file=sys.stderr)
+        raise SystemExit(2) from None
+
+
 def _parse_args(argv: list[str]) -> tuple[Path, Path, int, int]:
     dpi, max_px, positional = DEFAULT_DPI, DEFAULT_MAX_PX, []
     for arg in argv[1:]:
         if arg.startswith("--dpi="):
-            dpi = int(arg.split("=", 1)[1])
+            dpi = _int_flag(arg)
         elif arg.startswith("--max-px="):
-            max_px = int(arg.split("=", 1)[1])
+            max_px = _int_flag(arg)
         else:
             positional.append(arg)
     if len(positional) != 2:
