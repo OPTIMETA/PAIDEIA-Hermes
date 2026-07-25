@@ -10,9 +10,9 @@ byte-identical copy.
 from __future__ import annotations
 
 import datetime
+import itertools
 import os
 import re
-import tempfile
 from pathlib import Path
 
 # Canonical key order — write_meta() emits keys in exactly this order.
@@ -46,14 +46,45 @@ def strip_comment(value: str) -> str:
     return _META_COMMENT_RX.split(value, maxsplit=1)[0].strip()
 
 
+# Same scrub pd_errlog applies to error-log values. COURSE_NAME is echoed to the
+# terminal by the session banner and the status line, so an escape sequence that
+# survives here is written straight to the user's terminal on every session start
+# in that folder.
+_CTRL_RX = re.compile(r"[\x00-\x1f\x7f]+")
+
+
 def _flatten(value: object) -> str:
-    """Collapse a value to one line so it can't forge extra ``KEY: value`` rows.
+    """Collapse a value to one printable line.
 
     ``.course-meta`` is line-oriented, so a newline inside a value would write a
     second key the reader treats as real — silently truncating the intended value
-    and, depending on order, overriding a later canonical key.
+    and, depending on order, overriding a later canonical key. Other control
+    characters are dropped for the terminal-echo reason above.
     """
-    return re.sub(r"\s+", " ", str(value).replace("\x00", "")).strip()
+    return re.sub(r"\s+", " ", _CTRL_RX.sub(" ", str(value))).strip()
+
+
+_tmp_counter = itertools.count()
+
+
+def _create_temp(path: Path) -> tuple[int, Path]:
+    """Create a fresh temp file beside *path*, with normal creation permissions.
+
+    Deliberately not ``tempfile.mkstemp``: that hardcodes 0600, which would make
+    an atomic write silently privatise files. Restoring the mode afterwards means
+    either hardcoding 0644 (overriding a deliberately strict umask) or reading the
+    umask, which is process-global and cannot be read without briefly setting it —
+    a race against any other thread creating a file. ``os.open`` with mode 0o666
+    applies the umask itself, exactly as ordinary file creation does, so there is
+    nothing to restore and nothing to race. ``O_EXCL`` keeps the name unique.
+    """
+    for _ in range(100):
+        tmp = path.parent / f".{path.name}.{os.getpid()}.{next(_tmp_counter)}.tmp"
+        try:
+            return os.open(tmp, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o666), tmp
+        except FileExistsError:
+            continue
+    raise OSError(f"could not create a temp file beside {path}")
 
 
 def atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> Path:
@@ -68,22 +99,20 @@ def atomic_write_text(path: Path, text: str, *, encoding: str = "utf-8") -> Path
     """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    # mkstemp() hardcodes 0600. Carry the existing file's mode across a rewrite,
-    # and use the ordinary 0644 for a new one, so switching to an atomic write
-    # doesn't quietly narrow permissions on files the user may share or serve.
+    # Rewriting an existing file keeps that file's mode; a new one gets whatever
+    # ordinary creation would give (see _create_temp).
     try:
         mode = path.stat().st_mode & 0o777
     except OSError:
-        mode = 0o644
-    fd, tmp = tempfile.mkstemp(
-        dir=str(path.parent), prefix=f".{path.name}.", suffix=".tmp"
-    )
+        mode = None
+    fd, tmp = _create_temp(path)
     try:
         with os.fdopen(fd, "w", encoding=encoding, newline="\n") as fh:
             fh.write(text)
             fh.flush()
             os.fsync(fh.fileno())
-        os.chmod(tmp, mode)
+        if mode is not None:
+            os.chmod(tmp, mode)
         os.replace(tmp, path)
     except BaseException:
         try:

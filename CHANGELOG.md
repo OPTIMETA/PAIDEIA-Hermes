@@ -7,7 +7,7 @@ All notable changes to PAIDEIA-Hermes. Versions follow the `plugin.yaml`
 
 Correctness and robustness pass over the whole plugin. No workflow changes: the
 same commands produce the same artifacts in the same places. Every fix below is
-covered by `tests/` (84 tests, stdlib only — `./tests/run.sh`).
+covered by `tests/` (93 tests, stdlib only — `./tests/run.sh`).
 
 ### Fixed — data integrity
 
@@ -68,8 +68,16 @@ covered by `tests/` (84 tests, stdlib only — `./tests/run.sh`).
   counts before it names.
 - **The atomic write keeps file permissions.** `mkstemp()` hardcodes `0600`, so
   moving to temp-file-plus-rename silently made `.course-meta`, `.gitignore` and
-  `PAIDEIA.md` owner-only. Existing modes are carried across a rewrite; new
-  files get `0644`.
+  `PAIDEIA.md` owner-only. A rewrite now carries the existing file's mode, and a
+  new file is created with `os.open(..., 0o666)` so the umask applies exactly as
+  it would to any other file — hardcoding `0644` instead would have overridden a
+  deliberately strict umask, and reading the umask to compute the mode cannot be
+  done without briefly setting it, racing every other thread creating a file.
+- **Control characters can't reach the terminal through a course name.**
+  `COURSE_NAME` is echoed by the session banner and the status line, so an escape
+  sequence stored in `.course-meta` was written to the terminal on every session
+  start in that folder. `errors/log.md` already scrubbed these; `.course-meta`
+  now does too.
 
 ### Fixed — a broken course now reads as broken everywhere
 
@@ -120,7 +128,7 @@ every workspace check. All four now agree it is a broken course and point at
 
 ### Added
 
-- **`tests/`** — 84 stdlib-only tests, no pytest and no install step
+- **`tests/`** — 93 stdlib-only tests, no pytest and no install step
   (`./tests/run.sh`). Includes contract tests that pin `pd_doctor`'s deliberate
   standalone copies of `SKELETON`/`META_KEYS`/the errors seed to their sources,
   assert every LLM subcommand has both a command spec and a skill that exists on

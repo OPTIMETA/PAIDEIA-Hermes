@@ -270,15 +270,54 @@ class TestAtomicMeta(TempCourse):
         leftovers = [p.name for p in self.cwd.iterdir() if p.name.endswith(".tmp")]
         self.assertEqual(leftovers, [], "temp file leaked on failure")
 
-    def test_atomic_write_does_not_narrow_permissions(self) -> None:
-        """mkstemp() is 0600; the files we replace must not silently become private."""
+    def test_atomic_write_matches_what_open_would_have_done(self) -> None:
+        """mkstemp() is 0600, but hardcoding 0644 overrides a strict umask.
+
+        Both directions are wrong: silently privatising files the user may share,
+        or silently widening them past the umask they deliberately set.
+        """
+        for umask in (0o022, 0o077, 0o002):
+            old = os.umask(umask)
+            try:
+                course = self.cwd / f"u{umask:03o}"
+                course.mkdir()
+                pd_meta.write_meta(course, {"COURSE_NAME": "X"})
+                reference = course / "ref.txt"
+                reference.write_text("x", encoding="utf-8")   # plain open()
+                self.assertEqual(
+                    (course / ".course-meta").stat().st_mode & 0o777,
+                    reference.stat().st_mode & 0o777,
+                    f"umask {umask:03o}: atomic write disagrees with open()",
+                )
+            finally:
+                os.umask(old)
+
+    def test_rewrite_preserves_an_explicit_mode(self) -> None:
         self.scaffold()
         meta = self.cwd / ".course-meta"
-        self.assertEqual(meta.stat().st_mode & 0o777, 0o644, "new file is not 0644")
-
         os.chmod(meta, 0o640)
         pd_meta.write_meta(self.cwd, {"COURSE_NAME": "Y"})
         self.assertEqual(meta.stat().st_mode & 0o777, 0o640, "rewrite lost the mode")
+
+    def test_control_characters_never_reach_the_terminal(self) -> None:
+        """COURSE_NAME is echoed by the session banner and the status line.
+
+        An escape sequence that survives the writer is written to the user's
+        terminal on every session start in that folder.
+        """
+        banner = importlib.import_module("hermes_plugins.paideia.pd_banner")
+        pd_meta.write_meta(self.cwd, {
+            "COURSE_NAME": "Algebra\x1b[31m\x07 \x00bell", "EXAM_DATE": "2099-01-01",
+        })
+        name = pd_meta.parse_meta(self.cwd)["COURSE_NAME"]
+        surfaces = [name, pd_status.render_status(self.cwd), banner.render_banner(self.cwd)]
+        for text in surfaces:
+            for ch in text:
+                self.assertFalse(
+                    ord(ch) < 0x20 and ch != "\n" or ord(ch) == 0x7F,
+                    f"control char {ch!r} survived into {text!r}",
+                )
+        self.assertIn("Algebra", name)
 
     def test_roundtrip_preserves_unknown_keys(self) -> None:
         pd_meta.write_meta(self.cwd, {"COURSE_NAME": "X", "CUSTOM_KEY": "kept"})
