@@ -2,46 +2,57 @@
 
 <p align="center">
   <strong>Your course. Your patterns. Your errors. Your cheatsheet.</strong><br>
-  <em>A <a href="https://github.com/NousResearch/hermes-agent">hermes-agent</a> plugin that turns your own materials into a permanent, editable, per-course study graph — every artifact shaped by you, not by a generic syllabus.</em>
+  <em>A Hermes Agent plugin that turns your own materials into a permanent, editable, per-course study graph — every artifact shaped by you, not by a generic syllabus.</em>
 </p>
 
 <p align="center">
-  <a href="https://github.com/OPTIMETA/PAIDEIA-Alt"><img height="30" src="https://img.shields.io/badge/Exam_Radar-OPTIMETA_Alt_plugin-333333?style=for-the-badge&labelColor=000000&color=333333" alt="Exam Radar — OPTIMETA Alt plugin"></a>
+  <img src="https://img.shields.io/badge/license-MIT-333333?style=flat-square&labelColor=000000&color=333333&cacheSeconds=3600" alt="License">
+  <img src="https://img.shields.io/github/stars/OPTIMETA/PAIDEIA-Hermes?style=flat-square&logo=github&logoColor=white&labelColor=000000&color=333333&cacheSeconds=3600" alt="GitHub stars">
+  <img src="https://img.shields.io/github/last-commit/OPTIMETA/PAIDEIA-Hermes?style=flat-square&labelColor=000000&color=333333&cacheSeconds=3600" alt="Last commit">
+  <img src="https://img.shields.io/github/languages/top/OPTIMETA/PAIDEIA-Hermes?style=flat-square&labelColor=000000&color=333333&cacheSeconds=3600" alt="Top language">
+  &nbsp;
+  <img src="https://img.shields.io/badge/Hermes%20Agent-000000?style=flat-square&logoColor=white&labelColor=000000&cacheSeconds=3600" alt="Hermes Agent">
+  <img src="https://img.shields.io/badge/Plugin-000000?style=flat-square&labelColor=000000&color=000000&cacheSeconds=3600" alt="Plugin">
+  <img src="https://img.shields.io/badge/Markdown-000000?style=flat-square&logo=markdown&logoColor=white&labelColor=000000&cacheSeconds=3600" alt="Markdown">
+  <img src="https://img.shields.io/badge/Python-000000?style=flat-square&logo=python&logoColor=white&labelColor=000000&cacheSeconds=3600" alt="Python">
+  <img src="https://img.shields.io/badge/Ollama-000000?style=flat-square&logo=ollama&logoColor=white&labelColor=000000&cacheSeconds=3600" alt="Ollama">
+  <img src="https://img.shields.io/badge/Qwen3--VL-000000?style=flat-square&labelColor=000000&color=000000&cacheSeconds=3600" alt="Qwen3-VL">
+  <img src="https://img.shields.io/badge/Tesseract-000000?style=flat-square&labelColor=000000&color=000000&cacheSeconds=3600" alt="Tesseract">
+  &nbsp;
+  <img src="https://img.shields.io/badge/LaTeX-000000?style=flat-square&logo=latex&logoColor=white&labelColor=000000&cacheSeconds=3600" alt="LaTeX">
+  <img src="https://img.shields.io/badge/Obsidian-000000?style=flat-square&logo=obsidian&logoColor=white&labelColor=000000&cacheSeconds=3600" alt="Obsidian">
 </p>
 
 <p align="center">
-  <sub><em>Capture lectures with <a href="https://github.com/OPTIMETA/PAIDEIA-Alt"><strong>Exam Radar</strong></a> — OPTIMETA's Alt plugin — and study them with Paideia. Pipe a roadmap straight in with <code>/paideia alt</code>.</em></sub>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/License-MIT-333333?style=flat-square&labelColor=000000&color=333333" alt="License: MIT">
-  <img src="https://img.shields.io/badge/hermes--agent-000000?style=flat-square&logo=anthropic&logoColor=white&labelColor=000000&color=000000" alt="hermes-agent">
-  <img src="https://img.shields.io/badge/Plugin-000000?style=flat-square&labelColor=000000&color=000000" alt="Plugin">
-  <img src="https://img.shields.io/badge/Model--agnostic-000000?style=flat-square&labelColor=000000&color=000000" alt="Model-agnostic">
-  <img src="https://img.shields.io/badge/Markdown-000000?style=flat-square&logo=markdown&logoColor=white&labelColor=000000&color=000000" alt="Markdown">
-  <img src="https://img.shields.io/badge/Python-000000?style=flat-square&logo=python&logoColor=white&labelColor=000000&color=000000" alt="Python">
-  <img src="https://img.shields.io/badge/Ollama-000000?style=flat-square&logo=ollama&logoColor=white&labelColor=000000&color=000000" alt="Ollama">
-  <img src="https://img.shields.io/badge/Qwen3--VL-000000?style=flat-square&labelColor=000000&color=000000" alt="Qwen3-VL">
-  <img src="https://img.shields.io/badge/Tesseract-000000?style=flat-square&labelColor=000000&color=000000" alt="Tesseract">
-  <img src="https://img.shields.io/badge/LaTeX-000000?style=flat-square&logo=latex&logoColor=white&labelColor=000000&color=000000" alt="LaTeX">
-  <img src="https://img.shields.io/badge/Obsidian-000000?style=flat-square&logo=obsidian&logoColor=white&labelColor=000000&color=000000" alt="Obsidian">
+  <a href="https://news.hada.io/topic?id=29865"><img height="34" src="https://img.shields.io/badge/GeekNews-%231%20on%2026.05.26-333333?style=for-the-badge&labelColor=000000&color=333333" alt="GeekNews #1 on 26.05.26"></a><a href="https://news.hada.io/weekly/202622"><img height="34" src="https://img.shields.io/badge/GeekNews%20Weekly-%23360-333333?style=for-the-badge&labelColor=000000&color=333333" alt="GeekNews Weekly #360"></a><br>
+  <a href="https://www.producthunt.com/products/paideia"><img height="34" src="https://img.shields.io/badge/Product%20Hunt-Launched-333333?style=for-the-badge&logo=producthunt&logoColor=white&labelColor=000000&color=333333" alt="Product Hunt launch"></a><a href="https://www.taewoopark.com/projects/paideia"><img height="34" src="https://img.shields.io/badge/Interactive%20Demo-Live-333333?style=for-the-badge&labelColor=000000&color=333333" alt="Interactive demo at taewoopark.com"></a>
+  <br><sub>Original PAIDEIA coverage and interactive demo.</sub>
 </p>
 
 <p align="center">
   <a href="./README.ko.md">한국어 README</a>
   &nbsp;·&nbsp;
-  <a href="https://github.com/OPTIMETA/PAIDEIA"><strong>PAIDEIA</strong> — the original (Claude Code)</a>
-  &nbsp;·&nbsp;
   <a href="https://taewoopark.com"><strong>taewoopark.com</strong> — author site</a>
 </p>
 
-> **A port, not a rewrite.** PAIDEIA-Hermes is [OPTIMETA/PAIDEIA](https://github.com/OPTIMETA/PAIDEIA) — originally a Claude Code plugin — re-expressed on [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent)'s own extension surfaces. Same formation cycle, same on-disk layout, same MIT license. Because hermes is **model-agnostic**, the exact same plugin runs on whatever provider you point hermes at: if your `~/.hermes/config.yaml` uses `provider: openai-codex`, Paideia is driven by **Codex (gpt-5.5)**; switch with `/model` and nothing about Paideia changes.
+<p align="center"><sub><strong>The PAIDEIA family — one study engine, every agentic runtime</strong></sub></p>
 
-> **Security notice.** PAIDEIA-Hermes installs as a hermes-agent plugin (`hermes plugins install …`) and never asks you to download a `.zip`, run an `.exe`, or use any installer. Any other repository using the PAIDEIA name is not affiliated with this project unless it is explicitly linked from this README.
+| Platform | Repository | What it is |
+|:--:|:--|:--|
+| <a href="https://github.com/OPTIMETA/PAIDEIA"><img src="https://cdn.simpleicons.org/claude/D97757" height="24" alt="Claude"></a> | **[PAIDEIA](https://github.com/OPTIMETA/PAIDEIA)** | The original — a **Claude Code** plugin. |
+| <a href="https://github.com/OPTIMETA/PAIDEIA-codex"><img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/ChatGPT-Logo.svg" height="24" alt="OpenAI Codex"></a> | **[PAIDEIA-codex](https://github.com/OPTIMETA/PAIDEIA-codex)** | **OpenAI Codex** skills + bundled MCP server. |
+| <a href="https://github.com/OPTIMETA/PAIDEIA-opencode"><img src="https://cdn.simpleicons.org/opencode/888888" height="24" alt="opencode"></a> | **[PAIDEIA-opencode](https://github.com/OPTIMETA/PAIDEIA-opencode)** | Command-line harness driving **opencode**. |
+| <a href="https://github.com/OPTIMETA/PAIDEIA-Hermes"><img src="https://github.com/hermes-agent.png" height="24" alt="hermes-agent"></a> | **[PAIDEIA-Hermes](https://github.com/OPTIMETA/PAIDEIA-Hermes)** | **Hermes Agent** plugin: CLI commands + gateway routing. |
+| <a href="https://github.com/OPTIMETA/PAIDEIA-mcp"><img src="https://cdn.simpleicons.org/modelcontextprotocol/888888" height="24" alt="MCP"></a> | **[PAIDEIA-mcp](https://github.com/OPTIMETA/PAIDEIA-mcp)** | Standalone local **MCP** server — drive PAIDEIA from Alt local models. |
+| <a href="https://github.com/OPTIMETA/PAIDEIA-Alt"><img src="https://github.com/altalt-org.png" height="24" alt="Alt · altalt.org"></a> | **[PAIDEIA-Alt](https://github.com/OPTIMETA/PAIDEIA-Alt)** | **Exam Radar** — the Alt lecture-capture plugin ([altalt.org](https://altalt.org)). |
 
 <p align="center">
   <em>Generic study tools teach you the average syllabus. Paideia teaches you <strong>your</strong> syllabus —<br>
   from your professor's notes, your HW emphases, your handwriting, your errors. Every artifact is a markdown file you can edit.</em>
+</p>
+
+<p align="center">
+  <img src="./docs/media/terminal-help.png" alt="Hermes PAIDEIA running on macOS" width="100%">
 </p>
 
 ---
@@ -58,67 +69,99 @@ This plugin implements that cycle for the specific, bounded problem of **exam pr
      └────────────────── feedback loop ───────────────────────┘
 ```
 
-Every stage produces a markdown artifact that lives in your course folder forever. Nothing is ephemeral. Nothing is hidden behind an API. Nothing stops working when the next funding winter hits — and because hermes is model-agnostic, nothing breaks when you change models.
+The study stages save Markdown artifacts in your course folder. You can keep reading, editing, and versioning those files independently of the agent. Generating new artifacts still requires the runtime, tools, and model used by the chosen stage.
 
 ---
 
 ## What generic study tools can't do
 
-Most study tools can't personalize to *your* course, *your* professor, or *your* mistakes — because the product they sell is a generic curriculum.
+Paideia starts with *your* course, *your* professor's assignments, and *your* mistakes. The input is the folder you bring: lecture notes, textbook chapters, homework, solutions, and scanned attempts.
 
-- **Coursera, edX, Khan Academy** — fixed curriculum; no idea what your professor actually emphasizes.
-- **Quizlet, Anki, Brainscape** — you manually curate every card; nothing derives patterns from your own solution manuals.
-- **Chegg, Course Hero** — generic solution manuals; not organized around your course's recurring idioms.
-- **ChatGPT Study Mode, Gemini "Deep Study", NotebookLM** — no persistent per-course state. Every new session starts cold, and last week's mistakes don't shape this week's drill unless you re-upload and re-explain.
+Generic curricula and manually curated flashcards can be useful companions. Paideia adds a specific workflow: extract recurring moves from your solutions, rank practice by homework coverage, and feed recorded errors into the next drill. The table describes that workflow, rather than the features or subscription terms of every learning service.
 
-None of them *form* understanding around the specific material in front of you. Paideia does the opposite: every artifact is derived from *your* folder — lecture notes, textbook chapter, HW, solutions, handwritten attempts — and accumulates permanently in plain markdown you can edit.
-
-| Axis | Paideia | Typical edu-SaaS / LLM chat |
+| Axis | Paideia | A generic course or an unstructured chat |
 |-----|---------|------------------------------|
-| Solution patterns (`P1..Pk`) | Extracted from *your course's* own solutions, citing your own files | Generic textbook list, or none |
-| Drill priority | Weighted by *your professor's* HW emphasis (HW density = exam tier) | Fixed curriculum, or your own guesswork |
-| Cheatsheet | Built from *your* `errors/log.md` — whatever you actually got wrong | Boilerplate from the syllabus |
-| Per-course state across sessions | Permanent markdown + YAML, grows as you work | Conversation resets; paid tier for history |
-| Editing an artifact you disagree with | Open the `.md` in any editor, save | Read-only UI |
-| Version history of your own understanding | `git log` / `git diff` any artifact | Not surfaced |
-| Where the artifacts live | Your disk, as text | Remote DB, exportable only with paid tier |
-| Which model does the work | **Whatever you configured** — Nous, OpenAI/Codex, Anthropic, OpenRouter, local | Vendor-locked |
+| Solution patterns (`P1..Pk`) | Extracted from your course's solutions, with source citations | Requires course-specific material and instructions |
+| Drill priority | Weighted by your professor's HW emphasis | Must be selected and maintained separately |
+| Cheatsheet | Errors shape the traps section; the course index supplies references | Must be assembled and revised separately |
+| Per-course state across sessions | Markdown + metadata files in the course folder | Depends on the service and how context is supplied |
+| Editing an artifact you disagree with | Open the `.md` in any editor and save | Depends on the tool's editing and export support |
+| Carrying prep into another semester | Copy the course folder and revise the changed material | Requires moving the relevant material and history |
+| Version history of your understanding | `git log` / `git diff`, when you commit the files | Depends on the tool's versioning support |
+| Where the artifacts live | Your disk, as text | Depends on the service |
 
-The plugin uses hermes (which drives a paid or local model of your choice) to do the heavy lifting, but everything it produces lives on your disk as plain markdown. Pause your subscription, swap providers, go fully local — the course-index, patterns, error log, weakmaps, and cheatsheets are all still yours to open, read, edit, and diff. The scaffold is the plugin; the study graph is yours.
+The runner does the model work; the study graph remains yours to open, read, edit, and diff. Changing providers or pausing a subscription does not remove the files already produced.
 
-By default, OCR goes through the agent's own native vision (whatever multimodal model your hermes provider exposes). If you'd rather the handwritten PDFs never leave the machine, `ollama pull qwen3-vl:8b` is a one-time ~6 GB download that flips every subsequent OCR pass to local Qwen3-VL inference.
+Default answer OCR is `claude`: page images are read through the runner's vision path. For local answer OCR, install Ollama and `qwen3-vl:8b`, then explicitly select `OCR_ENGINE: ollama` in `.course-meta` or pass `--ocr=ollama` to grade. Downloading the model alone does not change the engine. `tesseract` is the other local option. Local OCR keeps that transcription step local; subsequent analysis and grading still use the configured model and may send it the transcribed text.
 
 ---
 
 ## The load-bearing principle: HW density = exam probability
 
-Most "study smart" advice tells you to hunt your blind spots. That is **backwards**. The professor has *already told you* where the exam points live — by assigning homework. Sections with heavy HW coverage are 🔥🔥 Exam-primary. Sections with zero HW are ⚪ Low-risk, not "hidden traps". The professor's omission is the strongest possible signal that the topic is off the exam.
+Homework is Paideia's primary signal for allocating exam-prep time. Sections with more assigned problems get more practice; sections without homework remain reference material by default. **These are study-priority tiers, not measured probabilities or a guarantee of what the professor will test.**
 
-Paideia's ranking is explicit about this, and every drill command honors it by default:
-
-| Tier | HW count on section | Treatment | Share of mock-exam points |
-|------|---------------------|-----------|---------------------------|
+| Tier | HW count on section | Treatment | Target share of mock-exam points |
+|------|---------------------|-----------|---------------------------------|
 | 🔥🔥 Exam-primary | 3+ | Drill hardest | ≥70% |
 | 🔥 Exam-likely | 2 | Drill next | ~25% |
 | 🟡 Exam-possible | 1 | Warm-pass review | ≤5% |
-| ⚪ Low-risk | 0 | Reference only | 0 |
+| ⚪ Low-risk | 0 | Reference only | 0 by default |
 
-`/paideia quiz all`, `/paideia mock`, `/paideia hwmap hot` all weight output by this tiering. If you insist on drilling a ⚪ section, the plugin complies once and warns you that exam probability is low — your limited time is worth more than an imagined gotcha.
+`/paideia quiz all`, `/paideia mock 90`, and `/paideia hwmap hot` use this ranking. These allocations are instructions to the generating agent; inspect the resulting mock before relying on its exact distribution. Explicit requests and imported Exam Radar signals can inform what you choose to review.
 
 ---
 
 ## The formation cycle, stage by stage
 
+<p align="center"><sub><em>Actual macOS CLI sessions, viewed through a local terminal viewer. The course uses small synthetic demonstration materials.</em> · <a href="docs/media/README.md">Capture notes</a></sub></p>
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/media/terminal-status.png" alt="/paideia status">
+      <br><sub><b><code>/paideia status</code></b> — course · D-N · phase</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/media/terminal-help.png" alt="/paideia help">
+      <br><sub><b><code>/paideia help</code></b> — command reference</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/media/terminal-init.png" alt="/paideia init">
+      <br><sub><b><code>/paideia init</code></b> — course setup</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/media/terminal-doctor.png" alt="/paideia doctor">
+      <br><sub><b><code>/paideia doctor</code></b> — dependency check</sub>
+    </td>
+  </tr>
+</table>
+
+Start Hermes in the course folder and type **`/paideia <subcommand>`**. One slash command exposes 17 study/setup actions, plus `help`:
+
+- `status`, `doctor`, `help`, and `init name="…" exam=YYYY-MM-DD …` return Python-generated results directly.
+- Bare `init` hands an interactive setup wizard to the agent. The 14 study actions (`ingest`, `analyze`, drills, grading, reports, and `alt`) inject an agent turn; the initial “handed to the agent” line is an acknowledgement, not the completed artifact.
+- The agent reads the bundled command spec and skill files and writes results into the current course. You stay in the same conversation for a blind drill's strategy reply.
+- PAIDEIA registers a session-start banner and provides `/paideia status`. Open Markdown and equations in Obsidian alongside the CLI.
+
 | Stage | What it does | Commands | Produces |
 |-------|-------------|----------|----------|
 | **Encounter** | Read the professor's signal | `/paideia ingest` | `converted/**/*.md` — every lecture, textbook chapter, HW, solution, as clean LaTeX markdown |
 | **Structure** | Extract the grammar of the course | `/paideia analyze` | `course-index/{summary,patterns,coverage}.md` — topic tree, recurring solution patterns (P1..Pk), HW-density exam-tier ranking |
-| **Practice** | Active recall weighted by what the professor actually tests | `/paideia quiz`, `/paideia twin`, `/paideia blind`, `/paideia chain`, `/paideia mock` | `quizzes/`, `twins/`, `chain/`, `mock/` — problems you solve on paper |
+| **Practice** | Active recall weighted by assigned homework | `/paideia quiz`, `/paideia twin`, `/paideia blind`, `/paideia chain`, `/paideia mock` | `quizzes/`, `twins/`, `chain/`, `mock/` — problems you solve on paper |
 | **Reflection** | Your hand-written work becomes a grade | `/paideia grade` | `answers/converted/<name>.md` + `errors/log.md` — OCR via the agent's vision (default), Ollama/Qwen3-VL, or Tesseract; then strategy-based grading |
 | **Diagnosis** | Errors compressed into a priority-ranked weakness report | `/paideia weakmap` | `weakmap/weakmap_<ts>.md` — append-only history |
 | **Distillation** | One page, error-driven, printable | `/paideia cheatsheet`, `/paideia derive`, `/paideia pattern` | `cheatsheet/final.md`, `derivations/<slug>.md` — reference only what you actually need |
 
-Supporting: `/paideia hwmap` surfaces HW-density exam-probability, `/paideia status` shows where you are in the cycle, `/paideia init` bootstraps a fresh course folder.
+Supporting: `/paideia hwmap` shows homework-based study priorities, `/paideia status` shows where you are in the cycle, `/paideia init` bootstraps a fresh course folder.
+
+### Slack & other messaging gateways
+
+The plugin also registers `pre_gateway_dispatch`. On a configured Hermes gateway, messages such as `!paideia quiz §1.2 3` (Slack/Matrix), `/paideia quiz §1.2 3`, or `paideia quiz §1.2 3` can be rewritten into the same study prompt. This rewrite applies to the **14 model-driven study actions only**.
+
+`status`, `doctor`, `help`, and `init` fall through to the host's plugin-command handler. Use the explicit `init name="…" exam=…` form there: the bare wizard depends on CLI `inject_message()` and the gateway fallback can return the prompt text instead of starting a wizard. Gateway behavior also depends on the host exposing plugin commands on that platform.
+
+Course paths are on the machine running the gateway. Agent-driven prompts use the agent's working directory; deterministic handlers and the banner use the Hermes process's `Path.cwd()`. Start the gateway in the intended course folder and align `terminal.cwd` with it. Setting only `terminal.cwd` does not redirect Python handlers. Upload or copy scans into that server-side course. The README screenshots show the CLI; they are not screenshots of a live Slack deployment.
 
 ---
 
@@ -129,7 +172,7 @@ Supporting: `/paideia hwmap` surfaces HW-density exam-probability, `/paideia sta
 **Required**
 
 - [hermes-agent](https://github.com/NousResearch/hermes-agent), on any provider (Nous Portal, OpenAI/Codex, Anthropic, OpenRouter, local, …).
-- Python 3 + a Unix-style shell (`bash`/`zsh`; WSL2 on Windows).
+- Python 3.10+ (plugin syntax; the host may require newer) + a Unix-style shell (`bash`/`zsh`; WSL2 on Windows).
 - `poppler` (`pdftoppm`) — required by every OCR tier.
   - **macOS**: `brew install poppler tesseract tesseract-lang`
   - **Linux (Debian/Ubuntu)**: `apt-get install poppler-utils tesseract-ocr tesseract-ocr-kor`
@@ -159,7 +202,7 @@ hermes plugins enable paideia
 git clone https://github.com/OPTIMETA/PAIDEIA-Hermes && ./PAIDEIA-Hermes/install.sh
 ```
 
-Nothing in `~/.hermes/config.yaml` needs to change — the plugin is discovered from `~/.hermes/plugins/paideia/`.
+`hermes plugins enable paideia` records enablement in the active Hermes profile. Plugin discovery uses that profile’s plugins directory; `HERMES_HOME` can select an isolated profile.
 
 ### Per-course bootstrap
 
@@ -175,7 +218,9 @@ Open hermes inside the folder you want to use for this course, then either run t
 /paideia init name="Complex Analysis MATH 405" exam=2026-12-15 type=final lang=en ocr=claude weak="contour integration"
 ```
 
-Either form collects the same six fields — interface language `en|ko`, `COURSE_NAME`, `EXAM_DATE`, `EXAM_TYPE`, `USER_WEAK_ZONES`, and the OCR engine — and both run the same scaffolding: the directory skeleton, `.course-meta`, a project `PAIDEIA.md`, a `.gitignore` that keeps bulky scans out of git, and a seeded `errors/log.md`. A malformed `exam=` date is rejected rather than scaffolded, since a course whose countdown never appears gives you nothing to notice.
+Either form collects the same six fields — interface language `en|ko`, `COURSE_NAME`, `EXAM_DATE`, `EXAM_TYPE`, `USER_WEAK_ZONES`, and the OCR engine — and both run the same scaffolding: the directory skeleton, `.course-meta`, a project `PAIDEIA.md`, a `.gitignore` that excludes archived scans and OCR scratch, and a seeded `errors/log.md`. A malformed `exam=` date is rejected rather than scaffolded, since a course whose countdown never appears gives you nothing to notice.
+
+Scaffolding does not initialize Git. Run `git init` and commit the files if you want version history; add an `answers/*.pdf` ignore rule if active scans should also stay untracked. Re-running init refreshes `.course-meta` and preserves existing `PAIDEIA.md` and error history.
 
 The wizard also runs a dependency check first; after the one-liner, run `/paideia doctor` yourself. Override the OCR engine for a single grade with `/paideia grade --ocr=claude path/to/answer.pdf`.
 
@@ -192,12 +237,12 @@ my-course/
 │                                    #   a `# comment` needs two spaces before it,
 │                                    #   so `Complex Analysis #2` stays a course name
 ├── PAIDEIA.md                       # per-course workflow context the agent reads
-├── .gitignore                       # hides raw PDF scans + OCR scratch; the study graph itself stays committed
+├── .gitignore                       # excludes archived scans + OCR scratch; active answer PDFs need your own ignore rule
 │
 ├── materials/                       # YOU DROP RAW FILES HERE (PDF or MD)
 │   ├── lectures/  textbook/  homework/  solutions/
 │
-├── converted/                       # auto-generated markdown — do not edit (output of /paideia ingest)
+├── converted/                       # generated Markdown — back up edits before re-ingest (output of /paideia ingest)
 │   ├── lectures/  textbook/  homework/  solutions/
 │
 ├── course-index/                    # knowledge base — built by /paideia analyze
@@ -220,9 +265,8 @@ my-course/
 └── weakmap/                         # /paideia weakmap — timestamped, append-only history
 ```
 
-**Only two directories are yours to edit by hand:** `materials/` (drop source PDFs/MDs) and `answers/` (drop hand-written scans). Everything else is produced by `/paideia` commands and is regenerable. `git log <dir>` to see your own progress over time, or point Obsidian at the whole folder as a vault.
 
-The on-disk layout is **byte-compatible with upstream [PAIDEIA](https://github.com/OPTIMETA/PAIDEIA)** — a course folder moves between the Claude Code plugin and this hermes port unchanged.
+Drop source files in `materials/` and answer scans in `answers/`. All Markdown artifacts are editable; generation can overwrite derived files, so commit edits you want to preserve. Keep `errors/log.md` and the weakmap history: they record personal attempts that cannot be reconstructed from the source PDFs alone. Runtime context files and OCR engine names differ between editions; see the migration FAQ.
 
 ---
 
@@ -236,6 +280,8 @@ Paideia writes everything as plain markdown with LaTeX math (`$...$`, `$$...$$`)
 
 The terminal is bad for math; don't fight that.
 
+---
+
 ## And the lecture end: Alt
 
 Obsidian is the companion at the reading end. **[Alt](https://www.altalt.io/ko/)** is the companion at the other end — where the lectures come in. Alt records and transcribes your lectures, and OPTIMETA's **Exam Radar** plugin runs inside it to rank topics by how strongly the professor emphasized them out loud. Send that into Paideia with `/paideia alt`, and the loop closes: **attend the lecture → capture it → extract the exam signal → study what matters.**
@@ -244,23 +290,32 @@ Obsidian is the companion at the reading end. **[Alt](https://www.altalt.io/ko/)
 
 ## Full workflow — an example
 
-**Phase 0 — once per course (15 minutes).** Drop PDFs into `materials/{lectures,textbook,homework,solutions}/`, then in hermes:
+### Phase 0 — once per course (15 minutes)
+
+```bash
+cp ~/textbooks/ch*.pdf      ~/courses/my-course/materials/textbook/
+cp ~/lecture-notes/wk*.pdf  ~/courses/my-course/materials/lectures/
+cp ~/hw/hw*.pdf             ~/courses/my-course/materials/homework/
+cp ~/hw/hw*_sol.pdf         ~/courses/my-course/materials/solutions/
+```
+
+In Hermes:
 
 ```
-/paideia ingest                     # every PDF → vision pipeline (subagent per PDF, LaTeX-faithful)
+/paideia ingest                     # every PDF → vision pipeline (parallel agents, LaTeX-faithful)
 /paideia analyze <weak-zone hints>  # build patterns + coverage + summary
 /paideia hwmap hot                  # surface 🔥🔥 exam-primary zones
 ```
 
-**Phase 1 — diagnostic (40 minutes).**
+### Phase 1 — diagnostic (40 minutes)
 
 ```
 /paideia quiz all 20                # broad diagnostic, 20 problems
-# solve on paper, scan to answers/diagnostic.pdf
-/paideia grade                      # OCR + strategy grade
+# solve on paper (40 min), scan to answers/diagnostic.pdf
+/paideia grade                      # selected OCR engine + strategy grade
 ```
 
-**Phase 2 — targeted drilling (bulk of your prep time).**
+### Phase 2 — targeted drilling (bulk of your prep time)
 
 ```
 /paideia weakmap                    # priority-ranked weakness report
@@ -270,26 +325,32 @@ Obsidian is the companion at the reading end. **[Alt](https://www.altalt.io/ko/)
 /paideia quiz weakmap 5             # 5 problems targeting the latest weakmap
 ```
 
-**Phase 3 — integration (~90 minutes).**
+### Phase 3 — integration (~90 minutes)
 
 ```
-/paideia mock 90                    # full mock weighted by HW density
+/paideia mock 90                    # full 90-min mock weighted by HW density
 # solve on paper, scan, upload to answers/mock_<ts>.pdf
-/paideia grade
+/paideia grade                      # grade the mock
 ```
 
-**Phase 4 — compression (night before).**
+### Phase 4 — compression (60 minutes, night before exam)
 
 ```
 /paideia cheatsheet --pdf           # error-driven one-pager
 /paideia weakmap                    # review weak zones one more time
 ```
 
-**Phase 5 — cool-down (10 minutes before).** `/paideia weakmap` — top 3 only. Do not learn new things.
+### Phase 5 — cool-down (10 minutes before exam)
+
+```
+/paideia weakmap                    # top 3 only. Do not learn new things.
+```
 
 ---
 
 ## Commands (17 total)
+
+This is the installed command inventory for this edition. It does not include the original's `reindex` or `graph` commands.
 
 `/paideia <subcommand> [args]` — run `/paideia help` for the list inline.
 
@@ -315,53 +376,49 @@ Obsidian is the companion at the reading end. **[Alt](https://www.altalt.io/ko/)
 
 ---
 
-## Slack & other messaging gateways
-
-PAIDEIA-Hermes works through hermes' messaging gateway (Slack, Discord, Telegram, …), not just the CLI. Use your platform's typed-command prefix (Slack/Matrix use `!`, most others `/`):
-
-- **Deterministic commands** — `!paideia status`, `!paideia doctor`, `!paideia init name="…" exam=…`, `!paideia help` — reply with text directly.
-- **Agent-driven commands** — `!paideia ingest|analyze|quiz|grade|weakmap|mock|twin|…` — a `pre_gateway_dispatch` hook rewrites them into a normal agent turn (the CLI's in-session `inject_message` isn't available in the gateway). A bare phrase works too: `paideia quiz §1.2 3`.
-
-The gateway runs in its configured working directory (`terminal.cwd`), so point that at your course folder; each command reads `INTERFACE_LANG` from `.course-meta` itself, so en/ko prose is preserved in Slack too.
-
----
-
 ## Under the hood
 
 ### Ingest pipeline: vision for every PDF
 
-`/paideia ingest` routes every PDF in `materials/**` through one vision pipeline. `pdfplumber` proved unreliable even on prose pages the moment they mix equations, figures, or multi-column layouts, so everything goes through vision uniformly. `materials/**/*.md` are copied through with a provenance header.
+PDFs are rendered into page images before transcription. Markdown sources are copied with a provenance header. Ingest writes the converted material; analyze then creates `summary.md`, `patterns.md`, and `coverage.md` from those sources.
 
-`pd_render.py` renders every page to PNG at `dpi=160` and caps it at ≤1800 px on the long edge in the same pass, so an oversized image never exists for an agent to choke on (multimodal requests reject them). It streams one page at a time — a 120-page chapter peaks at ~47 MB instead of ~3 GB, which is the difference between ingesting a textbook and having to split the file by hand. Then hermes **delegates one subagent per PDF**, each reading its pages *sequentially* and in sorted filename order (parallel batches trip the dimension limit) and transcribing to LaTeX markdown — `$$\hat H = -\frac{\hbar^2}{2m}\partial_x^2 + V(x)$$` instead of `ℏ ∂ p2 …`. Details in `skills/paideia-pdf/VISION.md`.
+`pd_render.py` streams one page at a time, using 160 dpi and a maximum 1800 px long edge for ingest. The command spec asks Hermes to delegate one PDF per agent, with sequential page reading. The selected model and available tools determine whether that agent workflow can run.
+
+**Ingest always follows the agent-vision specification.** The `OCR_ENGINE` choice below controls answer grading; selecting `ollama` does not reroute `/paideia ingest` to local OCR. Plain Markdown sources do not require image recognition.
 
 ### Hand-writing OCR: three engines, you pick
 
-You don't type math into chat — you solve on paper, scan to PDF, drop it in `answers/`, and run `/paideia grade`. The engine is chosen per course (`OCR_ENGINE` in `.course-meta`) and overridable per call (`--ocr=`):
+Solve on paper, scan to `answers/`, then run `/paideia grade`. Engine choice is per course and can be overridden with `--ocr=<engine>`.
 
 | Engine | Default? | How it runs | When to pick it |
-|---|---|---|---|
-| `claude` | **Yes** | `pd_render.py` renders each page → the agent reads each PNG with its own native vision → synthesizes markdown. No extra model, nothing to install. | The out-of-the-box path. |
-| `ollama` | opt-in | `pd_vision_ocr.py --engine=ollama` → local Qwen3-VL 8B with automatic tesseract fallback. | Page images must never leave the machine. |
-| `tesseract` | opt-in | `pd_vision_ocr.py --engine=tesseract` → pytesseract (`eng`/`eng+kor`). | Lightest; acceptable for typed scans. |
+|--------|----------|-------------|-----------------|
+| `claude` | Yes | Render pages, then read them through the agent's vision path. | A working vision-capable model/tool configuration. |
+| `ollama` | Optional | Local Ollama `qwen3-vl:8b`, with Tesseract fallback. | Keep the answer's OCR page images local. |
+| `tesseract` | Optional | Local `pytesseract`. | Typed scans; handwriting and math need careful review. |
 
-> The default engine is named `claude` for on-disk compatibility with upstream PAIDEIA; on hermes it means **"the agent's own native vision"** — whichever multimodal model your provider exposes (e.g. gpt-5.5 via `openai-codex`). It is not tied to Anthropic.
+Default answer OCR is `claude`: page images are read through the runner's vision path. For local answer OCR, install Ollama and `qwen3-vl:8b`, then explicitly select `OCR_ENGINE: ollama` in `.course-meta` or pass `--ocr=ollama` to grade. Downloading the model alone does not change the engine. `tesseract` is the other local option. Local OCR keeps that transcription step local; subsequent analysis and grading still use the configured model and may send it the transcribed text.
+
+`claude` is a legacy engine label retained by this port. It means the Hermes agent vision workflow; it does not choose Anthropic or switch the configured model. `pd_vision_ocr.py` implements only the local tiers; the command spec handles native vision.
 
 ### Strategy-based grading, not line-by-line
 
-OCR noise makes strict algebraic grading useless, and **pattern recognition is the actual exam bottleneck** anyway. The grader checks three things per problem: (1) **Pattern** — did you pick the right `Pk`? (2) **Variables** — the right substitution/basis/contour? (3) **End-form** — the right final shape? Errors are logged to `errors/log.md` as YAML with a typed classification (`pattern-missed | wrong-variable | wrong-end-form | algebraic | sign | definition`). This log is the seed for `/paideia weakmap` and the only input to `/paideia cheatsheet`.
+The grading instructions check (1) the selected pattern `Pk`, (2) the variables, substitution, basis, or contour, and (3) the final expression's form. Review the transcription and grade when OCR is uncertain. Errors are appended to `errors/log.md` using `problem_id`, `pattern`, `error_type`, `summary`, `source`, and `date`. Error types include `pattern-missed`, `wrong-variable`, `wrong-end-form`, `algebraic`, `sign`, and `definition`.
+
+The cheatsheet uses the course index and error history together: patterns/formulas provide reference material, while your errors drive the traps and corrections. `--pdf` also requests a printable `cheatsheet/final.pdf`; inspect the rendered equations before printing.
 
 ### Patterns extracted from *your* solutions
 
-`/paideia analyze` reads your course's actual solution manual and labels recurring moves P1, P2, … with instances that cite your own `converted/solutions/` files. For complex analysis, P3 might be "closed contour + Jordan's lemma + residue"; for linear systems, "partial fractions + inverse Laplace with complex poles." Only the course reveals its own idioms.
+`/paideia analyze` reads the course's solutions and worked examples, labels recurring moves `P1`, `P2`, …, and cites the source files under `converted/`. The resulting pattern cards and HW coverage are the context for later drills. The model-generated index should be checked against your assignments.
 
-### Status & the session banner
+### Append-only history
 
-hermes has no per-prompt plugin statusline slot, so Paideia surfaces the same signal two ways:
+Commands append attempts to `errors/log.md` and save dated reports under `weakmap/`. Keep that history when re-ingesting or migrating. Generated problem sets have separate answer/solution siblings; solve the problems before opening them.
 
-- **`/paideia status`** prints `paideia · <COURSE> · D-N · <phase> · P<top-miss> ↑` on demand.
-- An **`on_session_start` hook** prints a matching banner when you open a session inside a course folder.
+### Status and the session banner
 
-`<phase>` is derived from **activity on disk**, so it advances when you actually use an artifact: `setup` (no `patterns.md` yet) → `diag` (patterns exist, nothing graded) → `drill` (quiz problems exist AND a graded `errors/log.md` entry) → `mock` (a mock-sourced entry appeared) → `cram` (`cheatsheet/final.*` exists) → `cool` (`D-0`). `<top-miss>` is the most frequent `pattern:` tag from the latest weakmap (falls back to `errors/log.md`). Both surfaces stay silent outside a course folder.
+`/paideia status` reports course · D-N · phase · top-miss. The detector uses `setup` when `patterns.md` is absent; `diag` when patterns exist without both a quiz problem and a recognized error entry; `drill` once both exist; `mock` after a recognized mock-sourced record; `cram` when `cheatsheet/final.md` or `.pdf` exists; and `cool` on exam day. The latest weakmap's first pattern is preferred, with error-log frequency as fallback. This is a filesystem heuristic, not evidence of mastery.
+
+Hermes also registers an `on_session_start` banner. The hook is silent outside a course; an explicit `/paideia status` there returns setup guidance.
 
 ---
 
@@ -390,7 +447,7 @@ PAIDEIA-Hermes/                     # == ~/.hermes/plugins/paideia/
 Run the tests before sending a patch — no install step, no pytest, no venv:
 
 ```bash
-./tests/run.sh          # 98 tests, ~31s
+./tests/run.sh          # 98 tests, runtime varies
 ```
 
 They cover the deterministic engine end to end and pin the cross-file contracts
@@ -408,7 +465,7 @@ How it maps to hermes' extension surfaces:
 
 | PAIDEIA (Claude Code) | PAIDEIA-Hermes (hermes-agent) |
 |---|---|
-| `/paideia:*` namespaced (16) | one `/paideia` slash command + subcommand dispatch (`ctx.register_command`) |
+| `/paideia:*` namespaced commands | one `/paideia` slash command + subcommand dispatch (`ctx.register_command`) |
 | auto-loaded skills | `skills/paideia-*/SKILL.md`, read by absolute path from the inject prompt |
 | in-session command runs the `.md` directly | handler `inject_message()`s a turn (CLI) / `pre_gateway_dispatch` rewrite (Slack/Discord) |
 | `SessionStart` hook banner | `on_session_start` hook |
@@ -420,45 +477,50 @@ How it maps to hermes' extension surfaces:
 
 ## Design convictions
 
-1. **The terminal is bad for math.** The agent produces markdown files; you read them (ideally in Obsidian).
-2. **Typing solutions is slow and error-prone.** You solve on paper, scan, and the plugin OCRs locally.
-3. **OCR noise is inevitable**, so grading is strategy-based (pattern / variables / end-form), which is what the real grader evaluates anyway.
-4. **Patterns must be extracted from *your* course's solutions** — not a generic list.
-5. **Your errors are the most valuable study signal.** The cheatsheet is generated from `errors/log.md`, not the syllabus.
-6. **HW density tells you the exam.** Spend finite time where the points are.
-7. **Everything is yours to edit** — plain markdown/YAML in your own git history. The plugin is a scaffold; the study graph is yours.
-8. **Model-agnostic by construction.** The same plugin runs on Codex, Nous, Anthropic, OpenRouter, or a local model — your study graph never depends on one vendor.
+1. **Read the math as Markdown.** Open the course in Obsidian or a Markdown-capable desktop view.
+2. **Solve on paper.** Scan the answer and choose the OCR path that fits your setup.
+3. **Review strategy and transcription.** Pattern, variables, and final form guide grading; OCR and model judgments can need correction.
+4. **Extract patterns from your course.** Cite the supplied solutions and worked examples.
+5. **Learn from recorded errors.** Let them shape practice and the cheatsheet's traps.
+6. **Use homework to prioritize.** Treat its density as a study signal and check it against the announced exam scope.
+7. **Keep the study graph yours.** Editable Markdown, preserved error history, and version control across sessions.
 
 ---
 
 ## FAQ
 
-**Does this work for non-math courses?** It's built around problem-pattern extraction, so it shines in quantitative disciplines (math, physics, EE, CS-theory, statistics). History/literature would ingest and summarize, but the drill commands assume problems have solution patterns.
+**Does this work for non-math courses?**
+Ingest and summarization can help, but the practice workflow assumes recurring problem-solving patterns. It is designed for math, physics, engineering, and related quantitative courses.
 
-**Korean and English mixed materials?** Yes. OCR is configured for `eng+kor`; prose stays in its source language and `INTERFACE_LANG` controls the plugin's own narrative (`en|ko`).
+**How does the next session remember my work?**
+The course context, index, and error history are files. Later commands read them again; your study record is not dependent on chat history alone.
 
-**Which model runs it — and do I need Codex specifically?** Whatever your hermes provider is. If `~/.hermes/config.yaml` says `provider: openai-codex` you're on Codex (gpt-5.5); switch with `/model` and nothing about Paideia changes. The default OCR engine (`claude`) means "the agent's own vision," not Anthropic specifically.
+**Can I edit the patterns or cheatsheet?**
+Yes. Save changes in any Markdown editor and commit the files you want to preserve before regenerating them. Keep the error log and weakmap history.
 
-**Does it work in Slack?** Yes — see [Slack & other messaging gateways](#slack--other-messaging-gateways). Deterministic commands reply with text; agent-driven ones are rewritten into a turn by a `pre_gateway_dispatch` hook.
+**Korean and English mixed materials?**
+Set `INTERFACE_LANG: en` or `ko` in `.course-meta` for the generated narrative. File paths, pattern IDs, YAML keys, and tier tokens stay unchanged. The local OCR helper uses the corresponding Tesseract language configuration; install the needed language packs.
 
-**Do I need Ollama / Qwen3-VL?** No. The default OCR is the agent's native vision. Ollama (`qwen3-vl:8b`) is opt-in for keeping page images fully on-machine; `tesseract` is a minimal-install floor.
+**Do I need Ollama, and is the whole workflow offline?**
+Ollama is optional. The default uses the runtime’s vision path. Local OCR keeps image transcription on your machine, but analysis and grading still use your configured model. See the OCR engine table above for the required setup.
 
-**Can I edit the patterns / cheatsheet / weakmap if I disagree?** Yes — that's the point of plain markdown. Rewrite `P3` in `course-index/patterns.md` and the next drill uses your edit.
+**Can I move a course between PAIDEIA editions?**
+The Markdown study artifacts share a layout. Review the destination's context file and engine names first: `CLAUDE.md` / `AGENTS.md` / `PAIDEIA.md`, and `claude` / `codex-native` / `vision` or `ollama` / `qwen3-vl`. Preserve your existing metadata and personal history; the versions do not have identical configuration or command sets.
 
-**Can I reuse the plugin across courses?** Yes — each course is its own folder with its own `.course-meta`, `course-index/`, `errors/log.md`, `weakmap/`. Nothing is shared. Open hermes inside whichever course folder you're working on.
-
-**Is my data private?** Your PDFs, markdown, errors, and weakmaps live in your local course folder. Network traffic depends on the OCR engine: `claude` routes page images through your normal hermes provider; `ollama`/`tesseract` keep everything on the machine.
+**Does model-generated grading need review?**
+Yes. The source scan, transcription, referenced patterns, and YAML log let you inspect and correct an assessment. The status indicator is a file-based workflow cue, not an independent measurement of understanding.
 
 ---
 
 ## Connect
 
 <p align="center">
-  <a href="https://github.com/TaewoooPark"><img src="https://img.shields.io/badge/-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
-  <a href="https://x.com/theoverstrcture"><img src="https://img.shields.io/badge/-X-000000?style=for-the-badge&logo=x&logoColor=white" alt="X (Twitter)"></a>
-  <a href="https://www.linkedin.com/in/taewoo-park-427a05352"><img src="https://img.shields.io/badge/-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
-  <a href="https://taewoopark.com"><img src="https://img.shields.io/badge/-taewoopark.com-000000?style=for-the-badge&logo=safari&logoColor=white" alt="Personal site"></a>
-  <a href="mailto:ptw151125@kaist.ac.kr"><img src="https://img.shields.io/badge/-Email-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Email"></a>
+  <a href="https://github.com/TaewoooPark"><img src="https://img.shields.io/badge/-GitHub-181717?style=for-the-badge&logo=github&logoColor=white&cacheSeconds=3600" alt="GitHub"></a>
+  <a href="https://x.com/theoverstrcture"><img src="https://img.shields.io/badge/-X-000000?style=for-the-badge&logo=x&logoColor=white&cacheSeconds=3600" alt="X (Twitter)"></a>
+  <a href="https://www.linkedin.com/in/taewoo-park-427a05352"><img src="https://img.shields.io/badge/-LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white&cacheSeconds=3600" alt="LinkedIn"></a>
+  <a href="https://www.instagram.com/t.wo0_x/"><img src="https://img.shields.io/badge/-Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white&cacheSeconds=3600" alt="Instagram"></a>
+  <a href="https://taewoopark.com"><img src="https://img.shields.io/badge/-taewoopark.com-000000?style=for-the-badge&logo=safari&logoColor=white&cacheSeconds=3600" alt="Personal site"></a>
+  <a href="mailto:ptw151125@kaist.ac.kr"><img src="https://img.shields.io/badge/-Email-D14836?style=for-the-badge&logo=gmail&logoColor=white&cacheSeconds=3600" alt="Email"></a>
 </p>
 
 ---
